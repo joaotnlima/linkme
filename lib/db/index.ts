@@ -25,10 +25,17 @@ async function create(): Promise<Db> {
   // reused dead socket otherwise hangs the request. Fail fast on connect too.
   const client = postgres(env.databaseUrl, {
     prepare: false,
-    max: 5,
+    // Serverless + Supabase transaction pooler (pool_size 15): keep one
+    // connection per instance so many Fluid instances don't exhaust the pool.
+    // Transaction mode multiplexes, so queries still run fine.
+    max: 1,
     idle_timeout: 20, // close a connection after 20s idle
     max_lifetime: 60 * 5, // recycle connections every 5 min
     connect_timeout: 10, // error instead of hanging if connect stalls
+    // Server-side cap: Postgres cancels any query running >8s. Bounds a stalled
+    // request to a fast error instead of a 300s function timeout that also
+    // leaves pooler connections checked out.
+    connection: { statement_timeout: 8000 },
   });
   return drizzle(client, { schema }) as unknown as Db;
 }

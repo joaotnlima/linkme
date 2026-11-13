@@ -1,19 +1,22 @@
 import "server-only";
+import { cache } from "react";
 import { and, asc, desc, eq, gte, sql, count } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 
 const { settings, feeds, linksTable, posts, clicks } = schema;
 
-export async function getSettings() {
+// `cache()` dedupes per request: the public page calls these in both
+// generateMetadata and the component — without it that's double the queries.
+export const getSettings = cache(async () => {
   const db = await getDb();
   const row = await db.query.settings.findFirst({ where: eq(settings.id, 1) });
   if (row) return row;
   await db.insert(settings).values({ id: 1 }).onConflictDoNothing();
   return (await db.query.settings.findFirst({ where: eq(settings.id, 1) }))!;
-}
+});
 
 /** Everything the public page needs, in display order. */
-export async function getPublicPage() {
+export const getPublicPage = cache(async () => {
   const db = await getDb();
   const [s, feedRows, linkRows, postRows] = await Promise.all([
     getSettings(),
@@ -22,7 +25,7 @@ export async function getPublicPage() {
     db.select().from(posts).where(eq(posts.enabled, true)).orderBy(asc(posts.position), desc(posts.publishedAt)),
   ]);
   return { settings: s, feeds: feedRows, links: linkRows, posts: postRows };
-}
+});
 
 export async function getAdminData() {
   const db = await getDb();

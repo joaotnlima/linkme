@@ -6,7 +6,7 @@ export default async function SettingsPage() {
   const rows: [string, string][] = [
     ["Database", isLocalDb ? "Local PGlite (.data/pglite)" : "Postgres via DATABASE_URL"],
     ["Auth", authBypass ? "Open (local mode)" : hasSupabase ? `Supabase Auth · GitHub · owner id ${env.ownerGithubId || "(unset!)"}` : "Not configured"],
-    ["Storage", hasSupabase && env.supabaseServiceKey ? "Supabase Storage · bucket links-public" : "public/uploads (local)"],
+    ["Storage", hasSupabase && env.supabaseSecretKey ? "Supabase Storage · bucket links-public" : "public/uploads (local)"],
     ["Instagram sync", env.instagramToken ? "token set" : "no token"],
     ["Ingest endpoint", env.ingestToken ? "POST /api/ingest · token set" : "disabled (set INGEST_TOKEN)"],
     ["Site URL", env.siteUrl],

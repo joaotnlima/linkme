@@ -1,5 +1,7 @@
 import "server-only";
 import { putPublicFile } from "@/lib/storage";
+import { safeFetch } from "@/lib/safe-fetch";
+import { sniffImage } from "@/lib/images";
 
 const TIMEOUT_MS = 5000;
 const MAX_HTML_BYTES = 512 * 1024;
@@ -12,11 +14,11 @@ async function fetchWithLimit(url: string, accept: string, maxBytes = MAX_HTML_B
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(url, { signal: ctrl.signal, headers: { "user-agent": UA, accept, "accept-language": "en-US,en;q=0.9,pt;q=0.8" }, redirect: "follow" });
+    const res = await safeFetch(url, { signal: ctrl.signal, headers: { "user-agent": UA, accept, "accept-language": "en-US,en;q=0.9,pt;q=0.8" } });
     if (!res.ok) return null;
     const buf = new Uint8Array(await res.arrayBuffer());
     if (buf.byteLength > maxBytes) return null;
-    return { buf, type: res.headers.get("content-type") || "" , finalUrl: res.url };
+    return { buf, type: res.headers.get("content-type") || "", finalUrl: res.url || url };
   } catch {
     return null;
   } finally {
@@ -86,9 +88,10 @@ export async function fetchIconFor(linkId: string, url: string): Promise<string 
   candidates.push(`${origin}/favicon.ico`);
   for (const c of candidates) {
     const img = await fetchWithLimit(c, "image/*", MAX_IMAGE_BYTES);
-    if (!img || !img.type.startsWith("image/") || img.buf.byteLength < 64) continue;
-    const ext = img.type.includes("svg") ? "svg" : img.type.includes("png") ? "png" : img.type.includes("jpeg") ? "jpg" : img.type.includes("webp") ? "webp" : "ico";
-    return putPublicFile(`icons/${linkId}.${ext}`, img.buf, img.type);
+    if (!img || img.buf.byteLength < 64) continue;
+    const kind = sniffImage(img.buf);
+    if (!kind) continue; // SVG and anything unrecognised is skipped
+    return putPublicFile(`icons/${linkId}.${kind.ext}`, img.buf, kind.type);
   }
   return null;
 }
@@ -112,11 +115,11 @@ export async function fetchOg(postId: string, url: string): Promise<OgResult> {
   if (published && !Number.isNaN(Date.parse(published))) out.publishedAt = new Date(published);
   if (image) {
     const img = await fetchWithLimit(image, "image/*", MAX_IMAGE_BYTES);
-    if (img && img.type.startsWith("image/")) {
-      const ext = img.type.includes("png") ? "png" : img.type.includes("webp") ? "webp" : "jpg";
-      out.imageUrl = await putPublicFile(`posts/${postId}.${ext}`, img.buf, img.type);
-    } else {
-      out.imageUrl = image; // hotlink as a fallback
+    const kind = img ? sniffImage(img.buf) : null;
+    if (img && kind) {
+      out.imageUrl = await putPublicFile(`posts/${postId}.${kind.ext}`, img.buf, kind.type);
+    } else if (/^https:\/\//i.test(image)) {
+      out.imageUrl = image; // hotlink as a fallback (https only)
     }
   }
   return out;
@@ -126,9 +129,9 @@ export async function fetchOg(postId: string, url: string): Promise<OgResult> {
 export async function storeImageFromUrl(key: string, url: string): Promise<string | null> {
   if (!/^https?:\/\//i.test(url)) return null;
   const img = await fetchWithLimit(url, "image/*", MAX_IMAGE_BYTES);
-  if (!img || !img.type.startsWith("image/")) return null;
-  const ext = img.type.includes("png") ? "png" : img.type.includes("webp") ? "webp" : img.type.includes("gif") ? "gif" : "jpg";
-  return putPublicFile(`${key}.${ext}`, img.buf, img.type);
+  const kind = img ? sniffImage(img.buf) : null;
+  if (!img || !kind) return null;
+  return putPublicFile(`${key}.${kind.ext}`, img.buf, kind.type);
 }
 
 /** Instagram Graph API (Creator/Business account). Verify field names against current Meta docs. */
@@ -137,7 +140,7 @@ export async function fetchInstagramMedia(token: string) {
   u.searchParams.set("fields", "id,caption,media_type,media_url,thumbnail_url,permalink,timestamp");
   u.searchParams.set("limit", "12");
   u.searchParams.set("access_token", token);
-  const res = await fetch(u, { cache: "no-store" });
+  const res = await safeFetch(u.toString(), { cache: "no-store" });
   if (!res.ok) throw new Error(`Instagram API ${res.status}`);
   const json = (await res.json()) as { data?: Array<{ id: string; caption?: string; media_type: string; media_url?: string; thumbnail_url?: string; permalink: string; timestamp: string }> };
   return json.data ?? [];

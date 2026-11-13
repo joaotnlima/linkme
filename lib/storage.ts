@@ -11,13 +11,13 @@ const BUCKET = "links-public";
  * Local mode: public/uploads/<key>. Supabase mode: Storage bucket `links-public`.
  */
 export async function putPublicFile(key: string, bytes: Uint8Array, contentType: string): Promise<string> {
-  if (!hasSupabase || !env.supabaseServiceKey) {
+  if (!hasSupabase || !env.supabaseSecretKey) {
     const file = path.join(process.cwd(), "public", "uploads", key);
     await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, bytes);
     return `/uploads/${key}`;
   }
-  const admin = createClient(env.supabaseUrl, env.supabaseServiceKey, { auth: { persistSession: false } });
+  const admin = createClient(env.supabaseUrl, env.supabaseSecretKey, { auth: { persistSession: false } });
   // Idempotent bucket creation (ignore "already exists").
   await admin.storage.createBucket(BUCKET, { public: true }).catch(() => undefined);
   const { error } = await admin.storage.from(BUCKET).upload(key, bytes, { contentType, upsert: true });

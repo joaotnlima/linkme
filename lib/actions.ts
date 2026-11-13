@@ -8,6 +8,8 @@ import { feedInput, httpUrl, linkInput, postInput, settingsInput } from "@/lib/v
 import { slugify, platformOf } from "@/lib/slug";
 import { fetchIconFor, fetchOg, fetchInstagramMedia, storeImageFromUrl } from "@/lib/fetchers";
 import { ingestPost } from "@/lib/ingest";
+import { sniffImage } from "@/lib/images";
+import { assertPublicUrl } from "@/lib/safe-fetch";
 import { putPublicFile } from "@/lib/storage";
 import { env } from "@/lib/env";
 
@@ -66,6 +68,7 @@ export async function createLink(_prev: ActionResult | null, fd: FormData): Prom
       slug: str(fd, "slug"),
       iconEmoji: str(fd, "iconEmoji"),
     });
+    if (/^https?:/i.test(input.url)) await assertPublicUrl(input.url);
     const db = await getDb();
     const [{ max }] = await db.select({ max: sql<number>`coalesce(max(${linksTable.position}), -1)` }).from(linksTable);
     const slug = await uniqueSlug(input.slug || slugify(input.title));
@@ -110,6 +113,7 @@ export async function updateLink(_prev: ActionResult | null, fd: FormData): Prom
       slug: str(fd, "slug"),
       iconEmoji: str(fd, "iconEmoji"),
     });
+    if (/^https?:/i.test(input.url)) await assertPublicUrl(input.url);
     const db = await getDb();
     const existing = await db.query.linksTable.findFirst({ where: eq(linksTable.id, id) });
     if (!existing) return { ok: false, error: "Link not found." };
@@ -232,10 +236,11 @@ export async function setAvatar(_prev: ActionResult | null, fd: FormData): Promi
     }
     const file = fd.get("avatar");
     if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Pick an image first." };
-    if (!file.type.startsWith("image/")) return { ok: false, error: "Only images are allowed." };
     if (file.size > 2 * 1024 * 1024) return { ok: false, error: "Keep it under 2 MB." };
-    const ext = file.type.includes("png") ? "png" : file.type.includes("webp") ? "webp" : "jpg";
-    const url = await putPublicFile(`avatar/avatar-${Date.now()}.${ext}`, new Uint8Array(await file.arrayBuffer()), file.type);
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const kind = sniffImage(bytes);
+    if (!kind || kind.ext === "ico") return { ok: false, error: "Use a PNG, JPEG, GIF or WebP image." };
+    const url = await putPublicFile(`avatar/avatar-${Date.now()}.${kind.ext}`, bytes, kind.type);
     await db.update(settings).set({ avatarUrl: url }).where(eq(settings.id, 1));
     publish();
     return { ok: true };
@@ -324,6 +329,7 @@ export async function updatePost(_prev: ActionResult | null, fd: FormData): Prom
     await requireOwner();
     const id = str(fd, "id");
     const url = httpUrl.parse(str(fd, "url"));
+    await assertPublicUrl(url);
     const db = await getDb();
     let imageUrl: string | null = str(fd, "imageUrl") || null;
     const previous = await db.query.posts.findFirst({ where: eq(posts.id, id), columns: { imageUrl: true } });
@@ -334,10 +340,11 @@ export async function updatePost(_prev: ActionResult | null, fd: FormData): Prom
     }
     const file = fd.get("image");
     if (file instanceof File && file.size > 0) {
-      if (!file.type.startsWith("image/")) return { ok: false, error: "Only images are allowed." };
       if (file.size > 3 * 1024 * 1024) return { ok: false, error: "Keep the image under 3 MB." };
-      const ext = file.type.includes("png") ? "png" : file.type.includes("webp") ? "webp" : "jpg";
-      imageUrl = await putPublicFile(`posts/${id}-${Date.now()}.${ext}`, new Uint8Array(await file.arrayBuffer()), file.type);
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const kind = sniffImage(bytes);
+      if (!kind || kind.ext === "ico") return { ok: false, error: "Use a PNG, JPEG, GIF or WebP image." };
+      imageUrl = await putPublicFile(`posts/${id}-${Date.now()}.${kind.ext}`, bytes, kind.type);
     }
     await db
       .update(posts)

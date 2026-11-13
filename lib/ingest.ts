@@ -3,6 +3,7 @@ import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 import { fetchOg } from "@/lib/fetchers";
 import { platformOf } from "@/lib/slug";
+import { assertPublicUrl } from "@/lib/safe-fetch";
 
 const { feeds, posts } = schema;
 
@@ -16,6 +17,11 @@ export type IngestResult =
  * Feed resolution: explicit feedId → feed whose title mentions the platform → first enabled manual feed.
  */
 export async function ingestPost(input: { url: string; feedId?: string | null; title?: string | null }): Promise<IngestResult> {
+  try {
+    await assertPublicUrl(input.url);
+  } catch (e) {
+    return { ok: false, error: `Refused URL: ${e instanceof Error ? e.message : "not public"}` };
+  }
   const db = await getDb();
   const platform = platformOf(input.url);
 

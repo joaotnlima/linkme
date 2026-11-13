@@ -61,7 +61,7 @@ Reset local data: `rm -rf .data public/uploads`.
 
 ## Deploy (Supabase + Vercel)
 
-1. **Supabase project.** Project settings → Database → copy the **Transaction pooler** connection string (port 6543) → `DATABASE_URL`. Project settings → API → `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+1. **Supabase project.** Project settings → Database → copy the **Transaction pooler** connection string (port 6543) → `DATABASE_URL`. Project settings → API Keys → `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (sb_publishable_…) and `SUPABASE_SECRET_KEY` (sb_secret_…, server-only). The legacy `anon` / `service_role` names are accepted too.
 2. **GitHub login.** Authentication → Providers → GitHub: enable with a GitHub OAuth app whose callback is `https://<project-ref>.supabase.co/auth/v1/callback`. Add `https://<your-domain>/auth/callback` (and `http://localhost:3000/auth/callback` for local testing) to Authentication → URL configuration → Redirect URLs.
 3. **Owner.** `OWNER_GITHUB_ID` = your numeric GitHub id (`https://api.github.com/users/<login>` → `id`). Only that account can open `/admin`.
 4. **Migrate.** With `DATABASE_URL` set: `npm run db:migrate` (creates schema `links`), optionally `npm run db:seed`.

@@ -1,0 +1,9 @@
+node_modules
+.next
+.data
+.env*.local
+public/uploads
+*.log
+.DS_Store
+AGENTS.md
+BULLETPROOF.md

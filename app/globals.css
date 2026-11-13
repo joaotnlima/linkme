@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f4f3ef;
+  --card: #ffffff;
+  --line: #e2e0d8;
+  --ink: #16161a;
+  --muted: #5f5e58;
+  --tile: #e9e7e0;
+  --accent: #0e7c66;
+  --accent-soft: #e6f2ef;
+  --bg-stroke: #8a8880;
+  --bg-opacity: 0.32;
+}
+
+html[data-theme="dark"] {
+  --bg: #121214;
+  --card: #1c1c20;
+  --line: #2a2a30;
+  --ink: #eceae4;
+  --muted: #a3a19a;
+  --tile: #2a2a30;
+  --accent: #3ccba8;
+  --accent-soft: #15302b;
+  --bg-stroke: #8c8a83;
+  --bg-opacity: 0.38;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-tile: var(--tile);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+  color-scheme: light;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Discovery background: forking paths, one lights up. */
+.bg-path { stroke-dasharray: 6 9; animation: bg-drift 36s linear infinite; }
+.bg-accent { stroke-dasharray: 1; stroke-dashoffset: 1; animation: bg-draw 14s ease-in-out infinite; }
+.bg-dot { transform-box: fill-box; transform-origin: center; opacity: 0; animation: bg-pop 14s ease-in-out infinite; }
+.bg-ring { transform-box: fill-box; transform-origin: center; opacity: 0; animation: bg-ring 14s ease-out infinite; }
+.bg-q { transform-box: fill-box; transform-origin: center; animation: bg-float 7s ease-in-out infinite; }
+.bg-q2 { animation-delay: -2s; } .bg-q3 { animation-delay: -4s; } .bg-q4 { animation-delay: -5.5s; }
+@keyframes bg-drift { to { stroke-dashoffset: -150; } }
+@keyframes bg-draw { 0% { stroke-dashoffset: 1; opacity: 1; } 45% { stroke-dashoffset: 0; opacity: 1; } 78% { stroke-dashoffset: 0; opacity: 1; } 90% { stroke-dashoffset: 0; opacity: 0; } 100% { stroke-dashoffset: 1; opacity: 0; } }
+@keyframes bg-pop { 0%, 42% { opacity: 0; transform: scale(.3); } 50% { opacity: 1; transform: scale(1.15); } 56% { transform: scale(1); } 78% { opacity: 1; } 90%, 100% { opacity: 0; } }
+@keyframes bg-ring { 0%, 46% { opacity: 0; transform: scale(.4); } 52% { opacity: .8; } 80%, 100% { opacity: 0; transform: scale(2.6); } }
+@keyframes bg-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@media (prefers-reduced-motion: reduce) {
+  .bg-path, .bg-accent, .bg-dot, .bg-ring, .bg-q { animation: none; }
+  .bg-accent { stroke-dashoffset: 0; }
+  .bg-dot { opacity: 1; }
+}
+
+/* Editorial hero: 300 ms staggered reveal, once, on load. */
+.reveal { animation: reveal .3s ease-out both; }
+.reveal-1 { animation-delay: 0ms } .reveal-2 { animation-delay: 60ms } .reveal-3 { animation-delay: 120ms } .reveal-4 { animation-delay: 180ms } .reveal-5 { animation-delay: 260ms }
+@keyframes reveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .reveal { animation: none; } }
+
+.share-pop { animation: share-pop .22s ease-out both; }
+@keyframes share-pop { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .share-pop { animation: none; } }
+
+.card-hover { transition: transform .15s ease, box-shadow .15s ease; }
+@media (hover: hover) {
+  .card-hover:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+}
+.card-hover:active { transform: scale(.985); }
+
+/* Copy button: always visible on touch devices (no hover there); on pointer devices it
+   slides in on hover or keyboard focus. */
+@media (hover: hover) {
+  .copy-btn { opacity: 0; transform: translateX(8px); transition: opacity .18s ease, transform .18s ease; }
+  .card-hover:hover .copy-btn, .card-hover:focus-within .copy-btn { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .copy-btn { transition: none; transform: none; } }

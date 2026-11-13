@@ -20,7 +20,16 @@ async function create(): Promise<Db> {
   const postgres = (await import("postgres")).default;
   const { drizzle } = await import("drizzle-orm/postgres-js");
   // Supabase pooler (Supavisor) in transaction mode: no prepared statements.
-  const client = postgres(env.databaseUrl, { prepare: false, max: 5 });
+  // On serverless (Fluid Compute) the pool is cached across invocations, so
+  // recycle idle/old connections — the pooler drops idle server conns and a
+  // reused dead socket otherwise hangs the request. Fail fast on connect too.
+  const client = postgres(env.databaseUrl, {
+    prepare: false,
+    max: 5,
+    idle_timeout: 20, // close a connection after 20s idle
+    max_lifetime: 60 * 5, // recycle connections every 5 min
+    connect_timeout: 10, // error instead of hanging if connect stalls
+  });
   return drizzle(client, { schema }) as unknown as Db;
 }
 

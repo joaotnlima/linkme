@@ -4,7 +4,7 @@ import { getSettings } from "@/lib/queries";
 import { siteQrSvg, siteUrl } from "@/lib/share";
 import { ShareActions } from "@/components/public/ShareActions";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Share", robots: { index: false } };
 

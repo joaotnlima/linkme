@@ -64,7 +64,7 @@ Reset local data: `rm -rf .data public/uploads`.
 1. **Supabase project.** Project settings → Database → copy the **Transaction pooler** connection string (port 6543) → `DATABASE_URL`. Project settings → API Keys → `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (sb_publishable_…) and `SUPABASE_SECRET_KEY` (sb_secret_…, server-only). The legacy `anon` / `service_role` names are accepted too.
 2. **GitHub login.** Authentication → Providers → GitHub: enable with a GitHub OAuth app whose callback is `https://<project-ref>.supabase.co/auth/v1/callback`. Add `https://<your-domain>/auth/callback` (and `http://localhost:3000/auth/callback` for local testing) to Authentication → URL configuration → Redirect URLs.
 3. **Owner.** `OWNER_GITHUB_ID` = your numeric GitHub id (`https://api.github.com/users/<login>` → `id`). Only that account can open `/admin`.
-4. **Migrate.** With `DATABASE_URL` set: `npm run db:migrate` (creates schema `links`), optionally `npm run db:seed`.
+4. **Migrate.** `npm run build` runs `db:migrate` first, so Vercel applies pending migrations on every deploy (creates schema `links`). To seed once from your machine: set `DATABASE_URL` in `.env.local` and run `npm run db:seed`.
 5. **Vercel.** Import the repo, add the same variables plus `NEXT_PUBLIC_SITE_URL=https://<your-domain>`, deploy. Storage bucket `links-public` is created on first upload.
 6. **DNS.** On Cloudflare: `CNAME <sub> → cname.vercel-dns.com`, **DNS only (grey cloud)**; then add the domain in the Vercel project.
 

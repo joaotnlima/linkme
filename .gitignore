@@ -7,3 +7,5 @@ public/uploads
 .DS_Store
 AGENTS.md
 BULLETPROOF.md
+.vercel
+.env*

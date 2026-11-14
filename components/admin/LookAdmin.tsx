@@ -7,6 +7,7 @@ import { addPostByUrl, deleteFeed, deletePost, moveFeed, refetchPost, setAvatar,
 import { ActionButton, ActionForm, Field, Status, Toggle, inputCls } from "./ui";
 import { BackgroundPicker } from "./BackgroundPicker";
 import { DesignControls } from "./DesignControls";
+import { BannerImage } from "./BannerImage";
 import { LivePreview } from "./LivePreview";
 import { hostOf } from "@/lib/slug";
 
@@ -51,6 +52,7 @@ export function LookAdmin({ settings, feeds, links, posts, hasInstagram }: Props
         </div>
       </div>
       ) : null}
+      {tab === "design" ? <BannerImage url={settings.bannerUrl} /> : null}
 
       <ActionForm id="look-form" action={updateSettings} className="flex flex-col gap-3.5">
         {(state, pending) => {

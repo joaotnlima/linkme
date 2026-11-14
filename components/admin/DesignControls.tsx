@@ -60,10 +60,6 @@ export function DesignControls({ settings }: { settings: Settings }) {
         <Label>Profile shape</Label>
         <Segmented name="profileShape" value={shape} onChange={setShape} options={[{ v: "circle", label: "Circle" }, { v: "rounded", label: "Rounded" }, { v: "squircle", label: "Squircle" }, { v: "burst", label: "Burst" }]} />
       </div>
-      <label className="flex flex-col gap-1.5">
-        <Label>Banner image URL <span className="font-normal text-muted">(for Banner header)</span></Label>
-        <input name="bannerUrl" type="url" defaultValue={settings.bannerUrl ?? ""} placeholder="https://…" className={inputCls} />
-      </label>
 
       <div className="grid grid-cols-2 gap-3">
         <Color name="accentLight" label="Accent · light" initial={settings.accentLight} fallback="#0e7c66" />

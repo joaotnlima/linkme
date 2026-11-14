@@ -224,7 +224,6 @@ export async function updateSettings(_prev: ActionResult | null, fd: FormData): 
       wallpaperImageUrl: str(fd, "wallpaperImageUrl"),
       wallpaperVideoUrl: str(fd, "wallpaperVideoUrl"),
       profileShape: str(fd, "profileShape") || "circle",
-      bannerUrl: str(fd, "bannerUrl"),
       logoUrl: str(fd, "logoUrl"),
       fontBody: str(fd, "fontBody"),
       fontHeading: str(fd, "fontHeading"),
@@ -239,7 +238,6 @@ export async function updateSettings(_prev: ActionResult | null, fd: FormData): 
       wallpaperColor2: input.wallpaperColor2 || null,
       wallpaperImageUrl: input.wallpaperImageUrl || null,
       wallpaperVideoUrl: input.wallpaperVideoUrl || null,
-      bannerUrl: input.bannerUrl || null,
       logoUrl: input.logoUrl || null,
       updatedAt: new Date(),
     }).where(eq(settings.id, 1));
@@ -269,6 +267,38 @@ export async function setAvatar(_prev: ActionResult | null, fd: FormData): Promi
     await db.update(settings).set({ avatarUrl: url }).where(eq(settings.id, 1));
     publish();
     return { ok: true };
+  } catch (e) {
+    return fieldErrors(e);
+  }
+}
+
+export async function setBanner(_prev: ActionResult | null, fd: FormData): Promise<ActionResult> {
+  try {
+    await requireOwner();
+    const db = await getDb();
+    if (fd.get("clear") === "1") {
+      await db.update(settings).set({ bannerUrl: null }).where(eq(settings.id, 1));
+      publish();
+      return { ok: true };
+    }
+    const file = fd.get("banner");
+    if (file instanceof File && file.size > 0) {
+      if (file.size > 5 * 1024 * 1024) return { ok: false, error: "Keep it under 5 MB." };
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const kind = sniffImage(bytes);
+      if (!kind || kind.ext === "ico") return { ok: false, error: "Use a PNG, JPEG, GIF or WebP image." };
+      const url = await putPublicFile(`banner/banner-${Date.now()}.${kind.ext}`, bytes, kind.type);
+      await db.update(settings).set({ bannerUrl: url }).where(eq(settings.id, 1));
+      publish();
+      return { ok: true };
+    }
+    const url = str(fd, "url");
+    if (url) {
+      await db.update(settings).set({ bannerUrl: url }).where(eq(settings.id, 1));
+      publish();
+      return { ok: true };
+    }
+    return { ok: false, error: "Paste a URL or choose an image." };
   } catch (e) {
     return fieldErrors(e);
   }

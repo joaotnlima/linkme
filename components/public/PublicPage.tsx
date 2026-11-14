@@ -111,17 +111,32 @@ export function Socials({ links }: { links: Link[] }) {
 }
 
 export function PublicPage({ settings, feeds, links, posts, qrSvg, siteUrl }: PageData) {
+  const fullBleed = ["hero", "banner", "callout"].includes(settings.layout);
+  const share = (
+    <div className={fullBleed ? "absolute top-4 right-4 z-20 flex gap-2.5" : "flex justify-end gap-2.5"}>
+      <ShareCard url={siteUrl} qrSvg={qrSvg} name={settings.displayName} bio={settings.bio} avatarUrl={settings.avatarUrl} initials={initials(settings.displayName)} />
+      <ThemeToggle />
+    </div>
+  );
   return (
     <main {...customMainProps(settings)} className="relative flex-1 overflow-hidden" data-theme-default={settings.themeDefault}>
       <script dangerouslySetInnerHTML={{ __html: `document.documentElement.setAttribute('data-theme-default',${JSON.stringify(settings.themeDefault)})` }} />
       <Customize settings={settings} />
       <Background variant={settings.background} />
-      <div className="relative z-10 mx-auto w-full max-w-[640px] px-4 pt-5 pb-10 md:px-6 md:pt-8 flex flex-col gap-5 md:gap-6">
-        <div className="flex justify-end gap-2.5"><ShareCard url={siteUrl} qrSvg={qrSvg} name={settings.displayName} bio={settings.bio} avatarUrl={settings.avatarUrl} initials={initials(settings.displayName)} /><ThemeToggle /></div>
-        <ProfileHeader settings={settings} />
-        <Socials links={links} />
-        <PublicBody feeds={feeds} links={links} posts={posts} />
-        <MadeBy footer={settings.footer || hostOf(siteUrl)} />
+      <div className="relative z-10 mx-auto w-full max-w-[640px] pb-10 flex flex-col gap-5 md:gap-6">
+        {fullBleed ? (
+          <ProfileHeader settings={settings} share={share} />
+        ) : (
+          <div className="px-4 pt-5 md:px-6 md:pt-8 flex flex-col gap-5 md:gap-6">
+            {share}
+            <ProfileHeader settings={settings} />
+          </div>
+        )}
+        <div className="px-4 md:px-6 flex flex-col gap-5 md:gap-6">
+          <Socials links={links} />
+          <PublicBody feeds={feeds} links={links} posts={posts} />
+          <MadeBy footer={settings.footer || hostOf(siteUrl)} />
+        </div>
       </div>
     </main>
   );

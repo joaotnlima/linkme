@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import type { ReactNode } from "react";
 import type { Settings } from "@/lib/db/schema";
 import { shapeClass } from "./Customize";
 
@@ -7,12 +8,14 @@ function initials(name: string) {
 }
 
 /**
- * Header composition for the centered page, chosen in Look → Design → Header layout:
- * classic (round avatar), hero (big photo, name below), callout (name on top, big
- * photo), banner (color/image banner + overlapping avatar). "editorial" is its own
- * page component and never reaches here.
+ * Header composition chosen in Look → Design → Header layout.
+ * - classic: round avatar, centered (padded container; `share` rendered by the page).
+ * - hero: full-bleed photo, name overlaid at the bottom, fading into the page.
+ * - callout: big name on top, full-bleed photo below, fading into the page.
+ * - banner: full-bleed cover image + overlapping avatar, name/bio below.
+ * For hero/callout/banner the page passes `share` (share + theme toggle) to overlay.
  */
-export function ProfileHeader({ settings }: { settings: Settings }) {
+export function ProfileHeader({ settings, share }: { settings: Settings; share?: ReactNode }) {
   const v = settings.layout;
   const name = settings.displayName;
 
@@ -23,56 +26,71 @@ export function ProfileHeader({ settings }: { settings: Settings }) {
       {settings.quote ? <p className="text-xs md:text-[13px] italic text-muted max-w-[460px]">{settings.quote}</p> : null}
     </>
   );
-  const Name = ({ cls }: { cls: string }) => <h1 className={`cz-heading font-bold leading-tight tracking-tight ${cls}`}>{name}</h1>;
-  const Photo = ({ cls }: { cls: string }) =>
+  const photo = (cls: string) =>
     settings.avatarUrl ? (
       <img src={settings.avatarUrl} alt="" className={`object-cover bg-tile ${cls}`} />
     ) : (
       <div className={`bg-tile flex items-center justify-center ${cls}`}><span className="text-xs font-semibold uppercase tracking-wider text-muted">Add your photo</span></div>
     );
-  const Avatar = ({ cls }: { cls: string }) =>
+  const avatar = (cls: string) =>
     settings.avatarUrl ? (
       <img src={settings.avatarUrl} alt="" className={`object-cover ${shapeClass(settings.profileShape)} ${cls}`} />
     ) : (
       <div aria-hidden="true" className={`bg-accent text-white flex items-center justify-center font-bold ${shapeClass(settings.profileShape)} ${cls}`}>{initials(name)}</div>
     );
+  const fade = <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5" style={{ background: "linear-gradient(to top, var(--bg), transparent)" }} />;
 
   if (v === "hero") {
     return (
-      <header className="flex flex-col items-center gap-3 text-center">
-        <Photo cls="w-full aspect-[4/5] rounded-3xl" />
-        <Name cls="text-[26px] md:text-[32px]" />
-        <Texts />
+      <header className="flex flex-col">
+        <div className="relative">
+          {photo("block w-full aspect-[3/4]")}
+          {fade}
+          {share}
+          <h1 className="cz-heading absolute inset-x-0 bottom-3 px-4 text-center text-[36px] md:text-[48px] font-extrabold tracking-tight leading-none">{name}</h1>
+        </div>
+        <div className="px-4 pt-1.5 flex flex-col items-center gap-1 text-center"><Texts /></div>
       </header>
     );
   }
+
   if (v === "callout") {
-    // Name sits behind the photo; the photo overlaps its lower half (Linktree "Callout").
     return (
-      <header className="flex flex-col items-center gap-3 text-center">
-        <Name cls="relative z-0 text-[40px] md:text-[56px] leading-[0.95] px-2" />
-        <Photo cls="relative z-10 -mt-8 md:-mt-12 w-full aspect-[4/5] rounded-3xl" />
-        <Texts />
+      <header className="flex flex-col">
+        <div className="relative z-10 px-4 pt-14">
+          {share}
+          <h1 className="cz-heading text-center text-[44px] md:text-[60px] font-extrabold tracking-tight leading-[0.9]">{name}</h1>
+        </div>
+        <div className="relative -mt-7 md:-mt-10">
+          {photo("block w-full aspect-[3/4]")}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1/4" style={{ background: "linear-gradient(to bottom, var(--bg), transparent)" }} />
+          {fade}
+        </div>
+        <div className="px-4 pt-1.5 flex flex-col items-center gap-1 text-center"><Texts /></div>
       </header>
     );
   }
+
   if (v === "banner") {
     return (
-      <header className="flex flex-col items-center gap-2.5 text-center">
-        <div
-          className="w-full h-28 md:h-32 rounded-2xl overflow-hidden bg-accent"
-          style={settings.bannerUrl ? { backgroundImage: `url(${settings.bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
-        />
-        <Avatar cls="w-24 h-24 -mt-12 border-4 border-bg text-3xl" />
-        <Name cls="text-[22px] md:text-[26px]" />
-        <Texts />
+      <header className="flex flex-col items-center">
+        <div className="relative w-full">
+          <div className="w-full h-36 md:h-44 bg-accent" style={settings.bannerUrl ? { backgroundImage: `url(${settings.bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} />
+          {share}
+        </div>
+        {avatar("w-24 h-24 -mt-12 border-4 border-bg text-3xl relative z-10")}
+        <div className="px-4 pt-2.5 flex flex-col items-center gap-2 text-center">
+          <h1 className="cz-heading text-[22px] md:text-[26px] font-bold leading-tight tracking-tight">{name}</h1>
+          <Texts />
+        </div>
       </header>
     );
   }
+
   return (
     <header className="flex flex-col items-center gap-2.5 text-center">
-      <Avatar cls="w-24 h-24 md:w-28 md:h-28 text-4xl" />
-      <Name cls="text-[22px] md:text-[26px]" />
+      {avatar("w-24 h-24 md:w-28 md:h-28 text-4xl")}
+      <h1 className="cz-heading text-[22px] md:text-[26px] font-bold leading-tight tracking-tight">{name}</h1>
       <Texts />
     </header>
   );

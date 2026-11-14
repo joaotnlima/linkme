@@ -61,6 +61,10 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
   const photoBig = settings.avatarUrl
     ? <img src={settings.avatarUrl} alt="" className="w-full aspect-[4/5] object-cover rounded-2xl bg-tile" />
     : <div className="w-full aspect-[4/5] rounded-2xl bg-tile flex items-center justify-center"><span className="text-[11px] font-semibold uppercase tracking-wide text-muted">Your photo</span></div>;
+  const photoBleed = settings.avatarUrl
+    ? <img src={settings.avatarUrl} alt="" className="block w-full aspect-[3/4] object-cover bg-tile" />
+    : <div className="w-full aspect-[3/4] bg-tile flex items-center justify-center"><span className="text-[11px] font-semibold uppercase tracking-wide text-muted">Your photo</span></div>;
+  const fadeEl = <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5" style={{ background: "linear-gradient(to top, var(--bg), transparent)" }} />;
   const avatarSm = (extra = "") => settings.avatarUrl
     ? <img src={settings.avatarUrl} alt="" className={`w-20 h-20 object-cover ${shape} ${extra}`} />
     : <div className={`w-20 h-20 bg-accent text-white flex items-center justify-center text-2xl font-bold ${shape} ${extra}`}>{name.trim()[0]?.toUpperCase() ?? "•"}</div>;
@@ -94,21 +98,28 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
           <div className={`relative z-10 flex flex-col gap-3 px-4 pt-6 pb-8 ${editorial ? "text-left" : "items-center text-center"}`}>
             {layout === "banner" ? (
               <>
-                <div className="w-full h-16 rounded-xl bg-accent overflow-hidden" style={bannerUrl ? { backgroundImage: `url(${bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} />
-                {avatarSm("-mt-8 border-4")}
+                <div className="relative -mx-4 -mt-6 w-[calc(100%+2rem)] h-20 bg-accent" style={bannerUrl ? { backgroundImage: `url(${bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} />
+                {avatarSm("-mt-8 border-4 relative z-10")}
                 <h1 className="text-lg font-bold leading-tight" style={headingStyle}>{name}</h1>
                 {texts}
               </>
             ) : layout === "callout" ? (
               <>
-                <h1 className="relative z-0 text-3xl font-bold tracking-tight leading-[0.9]" style={headingStyle}>{name}</h1>
-                <div className="relative z-10 -mt-7 w-full">{photoBig}</div>
+                <h1 className="relative z-10 text-[34px] font-extrabold tracking-tight leading-[0.9] px-1" style={headingStyle}>{name}</h1>
+                <div className="relative -mx-4 -mt-6">
+                  {photoBleed}
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-1/4" style={{ background: "linear-gradient(to bottom, var(--bg), transparent)" }} />
+                  {fadeEl}
+                </div>
                 {texts}
               </>
             ) : layout === "hero" ? (
               <>
-                {photoBig}
-                <h1 className="text-xl font-bold leading-tight" style={headingStyle}>{name}</h1>
+                <div className="relative -mx-4 -mt-6">
+                  {photoBleed}
+                  {fadeEl}
+                  <h1 className="absolute inset-x-0 bottom-2 px-3 text-center text-2xl font-extrabold leading-none" style={headingStyle}>{name}</h1>
+                </div>
                 {texts}
               </>
             ) : editorial ? (

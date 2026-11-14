@@ -18,11 +18,17 @@ const cardCls = "rounded-2xl border border-line bg-card p-4 flex flex-col gap-3"
 export function LookAdmin({ settings, feeds, links, posts, hasInstagram }: Props) {
   const [feedEditing, setFeedEditing] = useState<Feed | "new" | null>(null);
   const [postEditing, setPostEditing] = useState<Post | null>(null);
+  const [tab, setTab] = useState<"content" | "design">("content");
   const initials = settings.displayName.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
 
   return (
     <div className="look-wide xl:grid xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-8 xl:items-start">
      <div className="flex flex-col gap-3 min-w-0">
+      <div className="flex gap-1 bg-card border border-line rounded-full p-1 self-start text-sm font-semibold">
+        <button type="button" onClick={() => setTab("content")} aria-current={tab === "content"} className={`h-9 px-5 rounded-full cursor-pointer ${tab === "content" ? "bg-ink text-bg" : "text-muted"}`}>Content</button>
+        <button type="button" onClick={() => setTab("design")} aria-current={tab === "design"} className={`h-9 px-5 rounded-full cursor-pointer ${tab === "design" ? "bg-ink text-bg" : "text-muted"}`}>Design</button>
+      </div>
+      {tab === "content" ? (
       <div className={cardCls}>
         <div className="flex items-center gap-3.5">
           {settings.avatarUrl ? <img src={settings.avatarUrl} alt="" className="w-[72px] h-[72px] rounded-full object-cover shrink-0" /> : <div className="w-[72px] h-[72px] rounded-full bg-accent text-white flex items-center justify-center text-2xl font-bold shrink-0">{initials}</div>}
@@ -44,43 +50,47 @@ export function LookAdmin({ settings, feeds, links, posts, hasInstagram }: Props
           </ActionForm>
         </div>
       </div>
+      ) : null}
 
       <ActionForm id="look-form" action={updateSettings} className="flex flex-col gap-3.5">
         {(state, pending) => {
           const f = state && !state.ok ? state.fields ?? {} : {};
           return (
             <>
-              <Field label="Display name" name="displayName" error={f.displayName}><input id="displayName" name="displayName" defaultValue={settings.displayName} className={inputCls} required maxLength={80} /></Field>
-              <Field label="Bio (≤ 160)" name="bio" error={f.bio}><textarea id="bio" name="bio" defaultValue={settings.bio ?? ""} rows={2} maxLength={160} className={`${inputCls} h-auto py-3 resize-none`} /></Field>
-              <Field label="Tagline" name="tagline" error={f.tagline}><textarea id="tagline" name="tagline" defaultValue={settings.tagline ?? ""} rows={2} maxLength={200} className={`${inputCls} h-auto py-3 resize-none`} /></Field>
-              <Field label="Quote (small, italic)" name="quote" error={f.quote}><input id="quote" name="quote" defaultValue={settings.quote ?? ""} maxLength={200} className={inputCls} /></Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Page layout" name="layout">
-                  <select id="layout" name="layout" defaultValue={settings.layout} className={inputCls}><option value="editorial">Editorial (photo + one button)</option><option value="classic">Classic (centered list)</option></select>
-                </Field>
+              <div className={tab === "content" ? "flex flex-col gap-3.5" : "hidden"}>
+                <Field label="Display name" name="displayName" error={f.displayName}><input id="displayName" name="displayName" defaultValue={settings.displayName} className={inputCls} required maxLength={80} /></Field>
+                <Field label="Bio (≤ 160)" name="bio" error={f.bio}><textarea id="bio" name="bio" defaultValue={settings.bio ?? ""} rows={2} maxLength={160} className={`${inputCls} h-auto py-3 resize-none`} /></Field>
+                <Field label="Tagline" name="tagline" error={f.tagline}><textarea id="tagline" name="tagline" defaultValue={settings.tagline ?? ""} rows={2} maxLength={200} className={`${inputCls} h-auto py-3 resize-none`} /></Field>
+                <Field label="Quote (small, italic)" name="quote" error={f.quote}><input id="quote" name="quote" defaultValue={settings.quote ?? ""} maxLength={200} className={inputCls} /></Field>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Page layout" name="layout">
+                    <select id="layout" name="layout" defaultValue={settings.layout} className={inputCls}><option value="editorial">Editorial (photo + one button)</option><option value="classic">Classic (centered list)</option></select>
+                  </Field>
+                  <Field label="Primary button (lead link)" name="leadLinkId">
+                    <select id="leadLinkId" name="leadLinkId" defaultValue={settings.leadLinkId ?? ""} className={inputCls}><option value="">None</option>{links.filter((l) => l.display !== "icon").map((l) => <option key={l.id} value={l.id}>{l.title}</option>)}</select>
+                  </Field>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Button label" name="ctaLabel" error={f.ctaLabel}><input id="ctaLabel" name="ctaLabel" defaultValue={settings.ctaLabel ?? ""} maxLength={40} placeholder="defaults to the link title" className={inputCls} /></Field>
+                  <Field label="Site title (browser / share)" name="siteTitle" error={f.siteTitle}><input id="siteTitle" name="siteTitle" defaultValue={settings.siteTitle ?? ""} maxLength={80} className={inputCls} /></Field>
+                </div>
+                <Field label="Share description" name="siteDescription" error={f.siteDescription}><input id="siteDescription" name="siteDescription" defaultValue={settings.siteDescription ?? ""} maxLength={200} className={inputCls} /></Field>
+                <Field label="Footer text" name="footer" error={f.footer}><input id="footer" name="footer" defaultValue={settings.footer ?? ""} maxLength={80} className={inputCls} /></Field>
+              </div>
+              <div className={tab === "design" ? "flex flex-col gap-3.5" : "hidden"}>
                 <Field label="Default theme" name="themeDefault">
                   <select id="themeDefault" name="themeDefault" defaultValue={settings.themeDefault} className={inputCls}><option value="auto">Auto (by local time)</option><option value="light">Light</option><option value="dark">Dark</option></select>
                 </Field>
+                <DesignControls settings={settings} />
+                <BackgroundPicker value={settings.background} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Primary button (lead link)" name="leadLinkId">
-                  <select id="leadLinkId" name="leadLinkId" defaultValue={settings.leadLinkId ?? ""} className={inputCls}><option value="">None</option>{links.filter((l) => l.display !== "icon").map((l) => <option key={l.id} value={l.id}>{l.title}</option>)}</select>
-                </Field>
-                <Field label="Button label" name="ctaLabel" error={f.ctaLabel}><input id="ctaLabel" name="ctaLabel" defaultValue={settings.ctaLabel ?? ""} maxLength={40} placeholder="defaults to the link title" className={inputCls} /></Field>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Site title (browser / share)" name="siteTitle" error={f.siteTitle}><input id="siteTitle" name="siteTitle" defaultValue={settings.siteTitle ?? ""} maxLength={80} className={inputCls} /></Field>
-                <Field label="Share description" name="siteDescription" error={f.siteDescription}><input id="siteDescription" name="siteDescription" defaultValue={settings.siteDescription ?? ""} maxLength={200} className={inputCls} /></Field>
-              </div>
-              <Field label="Footer text" name="footer" error={f.footer}><input id="footer" name="footer" defaultValue={settings.footer ?? ""} maxLength={80} className={inputCls} /></Field>
-              <DesignControls settings={settings} />
-              <BackgroundPicker value={settings.background} />
-              <div className="flex items-center gap-3"><button type="submit" disabled={pending} className="h-12 px-5 rounded-2xl bg-accent text-white font-semibold disabled:opacity-60 cursor-pointer">{pending ? "Saving…" : "Save & publish"}</button><Status state={state} /></div>
+              <div className="flex items-center gap-3 pt-1"><button type="submit" disabled={pending} className="h-12 px-5 rounded-2xl bg-accent text-white font-semibold disabled:opacity-60 cursor-pointer">{pending ? "Saving…" : "Save & publish"}</button><Status state={state} /></div>
             </>
           );
         }}
       </ActionForm>
 
+      {tab === "content" ? (<>
       <div className="flex items-center justify-between"><span className={sectionCls}>Feeds</span><button type="button" onClick={() => setFeedEditing("new")} className="h-8 px-2.5 rounded-lg border border-line bg-card text-[13px] font-semibold cursor-pointer">+ Add feed</button></div>
       {feeds.length === 0 ? <p className="text-sm text-muted px-1">No feeds. Add one to show your latest posts under the links.</p> : null}
       {feeds.map((f, i) => {
@@ -130,6 +140,7 @@ export function LookAdmin({ settings, feeds, links, posts, hasInstagram }: Props
           </div>
         );
       })}
+      </>) : null}
 
       {feedEditing ? (
         <Modal onClose={() => setFeedEditing(null)} title={feedEditing === "new" ? "New feed" : "Edit feed"}>

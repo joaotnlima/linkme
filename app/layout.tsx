@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { fontVars } from "@/lib/fonts";
 
 export const metadata: Metadata = {
   title: "Links",
@@ -12,7 +11,7 @@ const themeInit = `(function(){try{var o=localStorage.getItem('theme');var d=doc
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`h-full ${fontVars}`} suppressHydrationWarning>
+    <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>

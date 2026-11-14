@@ -1,16 +1,31 @@
-// Plain data (no next/font) so client components, validation and the public
-// pages can share the font list without importing the server-only loaders.
-export const FONTS: { key: string; label: string; css: string }[] = [
-  { key: "default", label: "Default", css: "var(--font-sans)" },
-  { key: "inter", label: "Inter", css: "var(--font-inter)" },
-  { key: "poppins", label: "Poppins", css: "var(--font-poppins)" },
-  { key: "grotesk", label: "Space Grotesk", css: "var(--font-grotesk)" },
-  { key: "playfair", label: "Playfair (serif)", css: "var(--font-playfair)" },
-  { key: "mono", label: "Mono", css: "ui-monospace, SFMono-Regular, Menlo, monospace" },
-];
+// Any Google font by family name. "" / "default" = system stack, "mono" = mono.
+// Plain data (no next/font) so client, validation and public pages can share it.
 
-export const FONT_KEYS = FONTS.map((f) => f.key) as [string, ...string[]];
-
-export function fontCss(key?: string | null) {
-  return FONTS.find((f) => f.key === key)?.css ?? FONTS[0].css;
+export function fontStack(name?: string | null): string {
+  const n = (name || "").trim();
+  if (!n || n.toLowerCase() === "default") return "var(--font-sans)";
+  if (n.toLowerCase() === "mono") return "ui-monospace, SFMono-Regular, Menlo, monospace";
+  return `'${n}', var(--font-sans)`;
 }
+
+/** Distinct real Google family names among the chosen fonts (ignores default/mono). */
+export function googleFamilies(...names: (string | null | undefined)[]): string[] {
+  return [...new Set(names.map((x) => (x || "").trim()).filter((n) => n && !["default", "mono"].includes(n.toLowerCase())))];
+}
+
+/** A Google Fonts CSS2 URL for the given families, or null if there are none. */
+export function googleFontsHref(families: string[]): string | null {
+  if (!families.length) return null;
+  const q = families.map((f) => `family=${encodeURIComponent(f).replace(/%20/g, "+")}:wght@400;500;600;700`).join("&");
+  return `https://fonts.googleapis.com/css2?${q}&display=swap`;
+}
+
+/** Popular families shown as suggestions in the picker (any name still works). */
+export const POPULAR_FONTS = [
+  "Inter", "Roboto", "Open Sans", "Poppins", "Montserrat", "Lato", "Nunito", "Raleway",
+  "Work Sans", "DM Sans", "Manrope", "Space Grotesk", "Plus Jakarta Sans", "Sora", "Outfit",
+  "Figtree", "Rubik", "Mulish", "Karla", "Barlow", "Archivo", "Oswald", "Bebas Neue",
+  "Playfair Display", "Lora", "Merriweather", "Libre Baskerville", "Cormorant", "PT Serif",
+  "Source Serif 4", "Quicksand", "Comfortaa", "Josefin Sans", "Caveat", "Dancing Script",
+  "Pacifico", "JetBrains Mono", "Roboto Mono", "Space Mono", "IBM Plex Mono",
+];

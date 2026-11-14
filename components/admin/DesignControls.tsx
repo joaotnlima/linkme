@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Settings } from "@/lib/db/schema";
-import { FONTS } from "@/lib/font-options";
+import { POPULAR_FONTS } from "@/lib/font-options";
 import { inputCls } from "./ui";
 
 function Segmented<T extends string>({ name, value, onChange, options }: { name: string; value: T; onChange: (v: T) => void; options: { v: T; label: string }[] }) {
@@ -54,15 +54,19 @@ export function DesignControls({ settings }: { settings: Settings }) {
         <Segmented name="buttonRadius" value={radius} onChange={setRadius} options={[{ v: "sharp", label: "Sharp" }, { v: "rounded", label: "Rounded" }, { v: "pill", label: "Pill" }]} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-semibold text-ink">Body font</span>
-          <select name="fontBody" defaultValue={settings.fontBody} className={inputCls}>{FONTS.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}</select>
-        </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-semibold text-ink">Heading font</span>
-          <select name="fontHeading" defaultValue={settings.fontHeading} className={inputCls}>{FONTS.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}</select>
-        </label>
+      <div className="flex flex-col gap-1.5">
+        <div className="grid grid-cols-2 gap-3">
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-semibold text-ink">Body font</span>
+            <input name="fontBody" list="gfonts" defaultValue={settings.fontBody} placeholder="Default (system)" autoComplete="off" spellCheck={false} className={inputCls} />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-semibold text-ink">Heading font</span>
+            <input name="fontHeading" list="gfonts" defaultValue={settings.fontHeading} placeholder="Default (system)" autoComplete="off" spellCheck={false} className={inputCls} />
+          </label>
+        </div>
+        <datalist id="gfonts">{POPULAR_FONTS.map((f) => <option key={f} value={f} />)}</datalist>
+        <span className="text-xs text-muted">Type any <a href="https://fonts.google.com" target="_blank" rel="noopener" className="underline">Google font</a> name (e.g. “Poppins”), or leave blank for the system font.</span>
       </div>
     </div>
   );

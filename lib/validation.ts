@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { BACKGROUND_KEYS } from "@/components/public/backgrounds";
-import { FONT_KEYS } from "@/lib/font-options";
-
+const fontName = z.string().trim().max(50).regex(/^[A-Za-z0-9 ]*$/, "Letters, numbers and spaces only").default("");
 const hexColor = z.string().trim().regex(/^#[0-9a-fA-F]{6}$/, "Use a hex colour like #0e7c66");
 const optUrl = z.string().trim().max(600).optional().or(z.literal(""));
 
@@ -54,8 +53,8 @@ export const settingsInput = z.object({
   profileShape: z.enum(["circle", "rounded", "squircle", "burst"]).default("circle"),
   bannerUrl: optUrl,
   logoUrl: optUrl,
-  fontBody: z.enum(FONT_KEYS).default("default"),
-  fontHeading: z.enum(FONT_KEYS).default("default"),
+  fontBody: fontName,
+  fontHeading: fontName,
   ctaLabel: z.string().trim().max(40),
   leadLinkId: z.string().uuid().optional().or(z.literal("")),
 });

@@ -226,8 +226,8 @@ export async function updateSettings(_prev: ActionResult | null, fd: FormData): 
       profileShape: str(fd, "profileShape") || "circle",
       bannerUrl: str(fd, "bannerUrl"),
       logoUrl: str(fd, "logoUrl"),
-      fontBody: str(fd, "fontBody") || "default",
-      fontHeading: str(fd, "fontHeading") || "default",
+      fontBody: str(fd, "fontBody"),
+      fontHeading: str(fd, "fontHeading"),
       ctaLabel: str(fd, "ctaLabel"),
       leadLinkId: str(fd, "leadLinkId"),
     });

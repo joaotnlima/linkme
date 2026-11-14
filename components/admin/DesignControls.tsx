@@ -38,10 +38,28 @@ function Color({ name, label, initial, fallback }: { name: string; label: string
 
 const Label = ({ children }: { children: React.ReactNode }) => <span className="text-sm font-semibold text-ink">{children}</span>;
 
+// Font dropdown: Default, Mono, the popular Google fonts, plus any custom value already set.
+function FontSelect({ name, value, onChange }: { name: string; value: string; onChange: (v: string) => void }) {
+  const known = ["", "mono", ...POPULAR_FONTS];
+  const extra = value && !known.includes(value) ? [value] : [];
+  return (
+    <select name={name} value={value} onChange={(e) => onChange(e.target.value)} className={inputCls}>
+      <option value="">Default (system)</option>
+      <option value="mono">Monospace</option>
+      {[...extra, ...POPULAR_FONTS].map((fo) => <option key={fo} value={fo} style={{ fontFamily: `'${fo}', sans-serif` }}>{fo}</option>)}
+    </select>
+  );
+}
+
 export function DesignControls({ settings }: { settings: Settings }) {
   const [style, setStyle] = useState(settings.buttonStyle as "solid" | "glass" | "outline");
   const [radius, setRadius] = useState(settings.buttonRadius as "sharp" | "rounded" | "pill");
   const [shape, setShape] = useState(settings.profileShape as "circle" | "rounded" | "squircle" | "burst");
+  const [hDesktop, setHDesktop] = useState(settings.layout);
+  const [hMobile, setHMobile] = useState(settings.layoutMobile);
+  const [fontBody, setFontBody] = useState(settings.fontBody);
+  const [fontHeading, setFontHeading] = useState(settings.fontHeading);
+
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-line bg-card p-4">
       <span className="text-xs font-semibold uppercase tracking-[0.08em] text-muted">Design</span>
@@ -49,7 +67,7 @@ export function DesignControls({ settings }: { settings: Settings }) {
       <div className="grid grid-cols-2 gap-3">
         <label className="flex flex-col gap-1.5">
           <Label>Header · Mobile</Label>
-          <select name="layoutMobile" defaultValue={settings.layoutMobile} className={inputCls}>
+          <select name="layoutMobile" value={hMobile} onChange={(e) => setHMobile(e.target.value)} className={inputCls}>
             <option value="classic">Classic</option>
             <option value="hero">Hero</option>
             <option value="callout">Callout</option>
@@ -58,7 +76,7 @@ export function DesignControls({ settings }: { settings: Settings }) {
         </label>
         <label className="flex flex-col gap-1.5">
           <Label>Header · Desktop</Label>
-          <select name="layout" defaultValue={settings.layout} className={inputCls}>
+          <select name="layout" value={hDesktop} onChange={(e) => setHDesktop(e.target.value)} className={inputCls}>
             <option value="editorial">Editorial</option>
             <option value="classic">Classic</option>
             <option value="hero">Hero</option>
@@ -67,6 +85,7 @@ export function DesignControls({ settings }: { settings: Settings }) {
           </select>
         </label>
       </div>
+
       <div className="flex flex-col gap-1.5">
         <Label>Profile shape</Label>
         <Segmented name="profileShape" value={shape} onChange={setShape} options={[{ v: "circle", label: "Circle" }, { v: "rounded", label: "Rounded" }, { v: "squircle", label: "Squircle" }, { v: "burst", label: "Burst" }]} />
@@ -86,13 +105,9 @@ export function DesignControls({ settings }: { settings: Settings }) {
         <Segmented name="buttonRadius" value={radius} onChange={setRadius} options={[{ v: "sharp", label: "Sharp" }, { v: "rounded", label: "Rounded" }, { v: "pill", label: "Pill" }]} />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1.5"><Label>Body font</Label><input name="fontBody" list="gfonts" defaultValue={settings.fontBody} placeholder="Default (system)" autoComplete="off" spellCheck={false} className={inputCls} /></label>
-          <label className="flex flex-col gap-1.5"><Label>Heading font</Label><input name="fontHeading" list="gfonts" defaultValue={settings.fontHeading} placeholder="Default (system)" autoComplete="off" spellCheck={false} className={inputCls} /></label>
-        </div>
-        <datalist id="gfonts">{POPULAR_FONTS.map((fo) => <option key={fo} value={fo} />)}</datalist>
-        <span className="text-xs text-muted">Type any <a href="https://fonts.google.com" target="_blank" rel="noopener" className="underline">Google font</a> name (e.g. “Poppins”), or leave blank for the system font.</span>
+      <div className="grid grid-cols-2 gap-3">
+        <label className="flex flex-col gap-1.5"><Label>Body font</Label><FontSelect name="fontBody" value={fontBody} onChange={setFontBody} /></label>
+        <label className="flex flex-col gap-1.5"><Label>Heading font</Label><FontSelect name="fontHeading" value={fontHeading} onChange={setFontHeading} /></label>
       </div>
     </div>
   );

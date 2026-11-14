@@ -128,11 +128,13 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
                 {texts}
               </>
             ) : editorial ? (
-              <>
-                {photoBig}
-                <h1 className="text-xl font-bold leading-tight" style={headingStyle}>{tagline || name}</h1>
-                {bio ? <p className="text-xs text-muted leading-snug max-w-[240px]">{bio}</p> : null}
-              </>
+              <div className="grid grid-cols-[1.1fr_1fr] gap-3 items-center w-full text-left">
+                <div className="flex flex-col gap-1.5">
+                  {bio ? <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">{bio}</p> : null}
+                  <h1 className="text-lg font-extrabold leading-[1.1]" style={headingStyle}>{tagline || name}</h1>
+                </div>
+                <div className="w-full">{photoBig}</div>
+              </div>
             ) : (
               <>
                 {avatarSm()}

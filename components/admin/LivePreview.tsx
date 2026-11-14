@@ -101,8 +101,8 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
               </>
             ) : layout === "callout" ? (
               <>
-                <h1 className="text-2xl font-bold leading-tight tracking-tight" style={headingStyle}>{name}</h1>
-                {photoBig}
+                <h1 className="relative z-0 text-3xl font-bold tracking-tight leading-[0.9]" style={headingStyle}>{name}</h1>
+                <div className="relative z-10 -mt-7 w-full">{photoBig}</div>
                 {texts}
               </>
             ) : layout === "hero" ? (

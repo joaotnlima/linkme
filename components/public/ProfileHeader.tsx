@@ -47,10 +47,11 @@ export function ProfileHeader({ settings }: { settings: Settings }) {
     );
   }
   if (v === "callout") {
+    // Name sits behind the photo; the photo overlaps its lower half (Linktree "Callout").
     return (
       <header className="flex flex-col items-center gap-3 text-center">
-        <Name cls="text-[34px] md:text-[44px]" />
-        <Photo cls="w-full aspect-[4/5] rounded-3xl" />
+        <Name cls="relative z-0 text-[40px] md:text-[56px] leading-[0.95] px-2" />
+        <Photo cls="relative z-10 -mt-8 md:-mt-12 w-full aspect-[4/5] rounded-3xl" />
         <Texts />
       </header>
     );

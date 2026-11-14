@@ -64,11 +64,36 @@ Reset local data: `rm -rf .data public/uploads`.
 1. **Supabase project.** Project settings → Database → copy the **Transaction pooler** connection string (port 6543) → `DATABASE_URL`. Project settings → API Keys → `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (sb_publishable_…) and `SUPABASE_SECRET_KEY` (sb_secret_…, server-only). The legacy `anon` / `service_role` names are accepted too.
 2. **GitHub login.** Authentication → Providers → GitHub: enable with a GitHub OAuth app whose callback is `https://<project-ref>.supabase.co/auth/v1/callback`. Add `https://<your-domain>/auth/callback` (and `http://localhost:3000/auth/callback` for local testing) to Authentication → URL configuration → Redirect URLs.
 3. **Owner.** `OWNER_GITHUB_ID` = your numeric GitHub id (`https://api.github.com/users/<login>` → `id`). Only that account can open `/admin`.
-4. **Migrate.** `npm run build` runs `db:migrate` first, so Vercel applies pending migrations on every deploy (creates schema `links`). To seed once from your machine: set `DATABASE_URL` in `.env.local` and run `npm run db:seed`.
+4. **Migrate.** Migrations run **separately** from the build (the build is just `next build` — it never touches the DB). Apply them from your machine using the **Session pooler** (port **5432**), which handles DDL; the transaction pooler on 6543 cancels `CREATE SCHEMA`/DDL with a statement timeout:
+   ```sh
+   POOLED=$(grep -E '^DATABASE_URL=' .env.local | cut -d= -f2-)
+   DATABASE_URL="${POOLED/:6543\//:5432\/}" npm run db:migrate   # creates schema "links"
+   DATABASE_URL="${POOLED/:6543\//:5432\/}" npm run db:seed       # optional, one-time seed
+   ```
 5. **Vercel.** Import the repo, add the same variables plus `NEXT_PUBLIC_SITE_URL=https://<your-domain>`, deploy. Storage bucket `links-public` is created on first upload.
+   - **Co-locate the function with the database.** [`vercel.json`](vercel.json) pins the region to `dub1` (Dublin = AWS `eu-west-1`). If your Supabase project is in another region, change it to the matching [Vercel region](https://vercel.com/docs/edge-network/regions) — a cross-region function makes every query a slow round-trip and can trip statement timeouts.
 6. **DNS.** On Cloudflare: `CNAME <sub> → cname.vercel-dns.com`, **DNS only (grey cloud)**; then add the domain in the Vercel project.
 
 All variables are documented in [`.env.example`](.env.example).
+
+### GitHub login setup (step by step)
+
+Admin login uses Supabase's GitHub OAuth provider. If you see
+`Unsupported provider: provider is not enabled`, the provider isn't turned on
+in Supabase yet. Full walkthrough:
+
+1. **Create a GitHub OAuth App** — GitHub → *Settings → Developer settings → OAuth Apps → New OAuth App*:
+   - **Homepage URL**: `https://<your-domain>` (e.g. `https://links.example.com`)
+   - **Authorization callback URL**: `https://<project-ref>.supabase.co/auth/v1/callback`
+     > ⚠️ This is the **Supabase** callback, not your app's `/auth/callback`. The flow is GitHub → Supabase → your app.
+   - Register, then copy the **Client ID** and generate a **Client Secret**.
+2. **Enable the provider in Supabase** — dashboard → *Authentication → Providers → GitHub*: toggle **Enable**, paste the **Client ID** and **Client Secret**, Save.
+3. **Set the auth URLs** — dashboard → *Authentication → URL Configuration*:
+   - **Site URL**: `https://<your-domain>`
+   - **Redirect URLs**: add `https://<your-domain>/auth/callback` and `http://localhost:3000/auth/callback` (for local dev).
+4. **Restrict to yourself** — set `OWNER_GITHUB_ID` to your numeric GitHub id (`https://api.github.com/users/<login>` → `id`). Anyone can authenticate, but only that id is allowed into `/admin`.
+
+No redeploy is needed — provider changes are server-side Supabase config and take effect immediately.
 
 ## Add posts from anywhere
 

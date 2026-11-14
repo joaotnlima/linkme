@@ -213,6 +213,7 @@ export async function updateSettings(_prev: ActionResult | null, fd: FormData): 
       themeDefault: str(fd, "themeDefault") || "auto",
       footer: str(fd, "footer"),
       layout: str(fd, "layout") || "editorial",
+      background: str(fd, "background") || "paths",
       ctaLabel: str(fd, "ctaLabel"),
       leadLinkId: str(fd, "leadLinkId"),
     });

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BACKGROUND_KEYS } from "@/components/public/backgrounds";
 
 /** http(s) URLs, plus mailto: and tel: (safe, non-script schemes). Bare hosts get https://. */
 export const httpUrl = z
@@ -36,6 +37,7 @@ export const settingsInput = z.object({
   themeDefault: z.enum(["auto", "light", "dark"]),
   footer: z.string().trim().max(80),
   layout: z.enum(["editorial", "classic"]).default("editorial"),
+  background: z.enum(BACKGROUND_KEYS).default("paths"),
   ctaLabel: z.string().trim().max(40),
   leadLinkId: z.string().uuid().optional().or(z.literal("")),
 });

@@ -70,6 +70,47 @@ body {
   .bg-dot { opacity: 1; }
 }
 
+/* Selectable homepage backgrounds (components/public/backgrounds.tsx). All theme-aware. */
+/* Aurora */
+.bgx-blob { position: absolute; width: 62vmax; height: 62vmax; border-radius: 50%; filter: blur(55px); opacity: .5; animation: bgx-drift1 26s ease-in-out infinite; }
+.bgx-blob2 { animation: bgx-drift2 32s ease-in-out infinite; }
+.bgx-blob3 { animation: bgx-drift3 22s ease-in-out infinite; }
+@keyframes bgx-drift1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(6%, 8%) scale(1.12); } }
+@keyframes bgx-drift2 { 0%,100% { transform: translate(0,0) scale(1.05); } 50% { transform: translate(-7%, -6%) scale(.92); } }
+@keyframes bgx-drift3 { 0%,100% { transform: translate(0,0) scale(.95); } 50% { transform: translate(-5%, 7%) scale(1.1); } }
+/* Drift grid */
+.bgx-grid { background-image: radial-gradient(var(--bg-stroke) 1.3px, transparent 1.6px); background-size: 30px 30px; opacity: .55; animation: bgx-pan 22s linear infinite; }
+@keyframes bgx-pan { to { background-position: 60px 90px; } }
+/* Constellation */
+.bgx-star { animation: bgx-tw 4.5s ease-in-out infinite; }
+@keyframes bgx-tw { 0%,100% { opacity: .2; } 50% { opacity: 1; } }
+/* Orbits */
+.bgx-orbit { animation: bgx-spin linear infinite; }
+@keyframes bgx-spin { to { transform: rotate(360deg); } }
+/* Waves */
+.bgx-wave { animation: bgx-wave linear infinite; }
+@keyframes bgx-wave { to { transform: translateX(-288px); } }
+/* Ripple */
+.bgx-ripple { animation: bgx-ripple 7s ease-out infinite; }
+@keyframes bgx-ripple { 0% { transform: scale(.15); opacity: .9; } 100% { transform: scale(7); opacity: 0; } }
+/* Streams */
+.bgx-stream { animation: bgx-fall linear infinite; }
+@keyframes bgx-fall { from { transform: translateY(0); } to { transform: translateY(1120px); } }
+/* Bokeh */
+.bgx-bokeh { position: absolute; border-radius: 50%; filter: blur(7px); opacity: .4; animation: bgx-rise ease-in-out infinite; }
+@keyframes bgx-rise { 0%,100% { transform: translateY(14px); opacity: .28; } 50% { transform: translateY(-16px); opacity: .5; } }
+/* Mesh */
+.bgx-mesh {
+  background:
+    radial-gradient(35% 45% at 18% 22%, var(--accent), transparent 60%),
+    radial-gradient(40% 50% at 84% 26%, var(--bg-stroke), transparent 60%),
+    radial-gradient(45% 55% at 48% 88%, var(--accent), transparent 60%);
+  background-size: 170% 170%; opacity: .4; filter: blur(34px); animation: bgx-mesh 28s ease-in-out infinite;
+}
+@keyframes bgx-mesh { 0%,100% { background-position: 0% 0%, 0% 0%, 0% 0%; } 50% { background-position: 12% 16%, -14% 10%, 10% -12%; } }
+/* One switch disables motion for every selectable background. */
+@media (prefers-reduced-motion: reduce) { .bg-scene *, .bgx-grid, .bgx-mesh { animation: none !important; } }
+
 /* Editorial hero: 300 ms staggered reveal, once, on load. */
 .reveal { animation: reveal .3s ease-out both; }
 .reveal-1 { animation-delay: 0ms } .reveal-2 { animation-delay: 60ms } .reveal-3 { animation-delay: 120ms } .reveal-4 { animation-delay: 180ms } .reveal-5 { animation-delay: 260ms }

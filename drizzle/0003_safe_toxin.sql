@@ -1,0 +1,1 @@
+ALTER TABLE "links"."settings" ADD COLUMN "background" text DEFAULT 'paths' NOT NULL;

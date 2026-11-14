@@ -25,7 +25,7 @@ export function PublicPageEditorial({ settings, feeds, links, posts, qrSvg, site
     <main className="relative flex-1 overflow-hidden" data-theme-default={settings.themeDefault}>
       <script dangerouslySetInnerHTML={{ __html: `document.documentElement.setAttribute('data-theme-default',${JSON.stringify(settings.themeDefault)})` }} />
       <div className="absolute inset-0" style={{ opacity: 0.5 }}>
-        <Background />
+        <Background variant={settings.background} />
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-[960px] px-4 pt-4 pb-10 md:px-8 md:pt-6">

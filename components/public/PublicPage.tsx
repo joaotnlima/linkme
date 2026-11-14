@@ -112,7 +112,7 @@ export function PublicPage({ settings, feeds, links, posts, qrSvg, siteUrl }: Pa
   return (
     <main className="relative flex-1 overflow-hidden" data-theme-default={settings.themeDefault}>
       <script dangerouslySetInnerHTML={{ __html: `document.documentElement.setAttribute('data-theme-default',${JSON.stringify(settings.themeDefault)})` }} />
-      <Background />
+      <Background variant={settings.background} />
       <div className="relative z-10 mx-auto w-full max-w-[640px] px-4 pt-5 pb-10 md:px-6 md:pt-8 flex flex-col gap-5 md:gap-6">
         <div className="flex justify-end gap-2.5"><ShareCard url={siteUrl} qrSvg={qrSvg} name={settings.displayName} bio={settings.bio} avatarUrl={settings.avatarUrl} initials={initials(settings.displayName)} /><ThemeToggle /></div>
         <header className="flex flex-col items-center gap-2.5 text-center">

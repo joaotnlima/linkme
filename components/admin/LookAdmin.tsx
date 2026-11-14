@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { Feed, Link, Post, Settings } from "@/lib/db/schema";
 import { addPostByUrl, deleteFeed, deletePost, moveFeed, refetchPost, setAvatar, syncInstagram, updatePost, updateSettings, upsertFeed } from "@/lib/actions";
 import { ActionButton, ActionForm, Field, Status, Toggle, inputCls } from "./ui";
+import { BackgroundPicker } from "./BackgroundPicker";
 import { hostOf } from "@/lib/slug";
 
 type Props = { settings: Settings; feeds: Feed[]; links: Link[]; posts: Post[]; hasInstagram: boolean };
@@ -69,6 +70,7 @@ export function LookAdmin({ settings, feeds, links, posts, hasInstagram }: Props
                 <Field label="Share description" name="siteDescription" error={f.siteDescription}><input id="siteDescription" name="siteDescription" defaultValue={settings.siteDescription ?? ""} maxLength={200} className={inputCls} /></Field>
               </div>
               <Field label="Footer text" name="footer" error={f.footer}><input id="footer" name="footer" defaultValue={settings.footer ?? ""} maxLength={80} className={inputCls} /></Field>
+              <BackgroundPicker value={settings.background} />
               <div className="flex items-center gap-3"><button type="submit" disabled={pending} className="h-12 px-5 rounded-2xl bg-accent text-white font-semibold disabled:opacity-60 cursor-pointer">{pending ? "Saving…" : "Save & publish"}</button><Status state={state} /></div>
             </>
           );

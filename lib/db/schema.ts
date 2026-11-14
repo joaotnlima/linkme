@@ -26,6 +26,7 @@ export const settings = links.table("settings", {
   themeDefault: text("theme_default").notNull().default("auto"), // auto | light | dark
   footer: text("footer").default(""),
   layout: text("layout").notNull().default("editorial"), // editorial | classic
+  background: text("background").notNull().default("paths"), // key from components/public/backgrounds.tsx
   ctaLabel: text("cta_label").default(""),
   leadLinkId: uuid("lead_link_id"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

@@ -22,6 +22,13 @@
       "when": 1794587986932,
       "tag": "0002_feeds",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794617955178,
+      "tag": "0003_safe_toxin",
+      "breakpoints": true
     }
   ]
 }

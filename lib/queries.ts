@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { and, asc, desc, eq, gte, sql, count } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lt, sql, count } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 
 const { settings, feeds, linksTable, posts, clicks } = schema;
@@ -65,7 +65,7 @@ export async function getStats(range: Range) {
   const [prevRow] = await db
     .select({ n: count() })
     .from(clicks)
-    .where(and(gte(clicks.ts, prevSince), sql`${clicks.ts} < ${since}`));
+    .where(and(gte(clicks.ts, prevSince), lt(clicks.ts, since)));
   const perDay = await db
     .select({ day: sql<string>`to_char(${clicks.ts} at time zone ${tz}, 'YYYY-MM-DD')`, n: count() })
     .from(clicks)

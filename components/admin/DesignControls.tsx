@@ -49,14 +49,21 @@ export function DesignControls({ settings }: { settings: Settings }) {
       <label className="flex flex-col gap-1.5">
         <Label>Header layout</Label>
         <select name="layout" defaultValue={settings.layout} className={inputCls}>
-          <option value="editorial">Editorial — photo + one button</option>
-          <option value="classic">Classic — centered list</option>
+          <option value="classic">Classic — round avatar</option>
+          <option value="hero">Hero — big photo, name below</option>
+          <option value="callout">Callout — name on top, big photo</option>
+          <option value="banner">Banner — cover image + avatar</option>
+          <option value="editorial">Editorial — side-by-side (desktop)</option>
         </select>
       </label>
       <div className="flex flex-col gap-1.5">
         <Label>Profile shape</Label>
         <Segmented name="profileShape" value={shape} onChange={setShape} options={[{ v: "circle", label: "Circle" }, { v: "rounded", label: "Rounded" }, { v: "squircle", label: "Squircle" }, { v: "burst", label: "Burst" }]} />
       </div>
+      <label className="flex flex-col gap-1.5">
+        <Label>Banner image URL <span className="font-normal text-muted">(for Banner header)</span></Label>
+        <input name="bannerUrl" type="url" defaultValue={settings.bannerUrl ?? ""} placeholder="https://…" className={inputCls} />
+      </label>
 
       <div className="grid grid-cols-2 gap-3">
         <Color name="accentLight" label="Accent · light" initial={settings.accentLight} fallback="#0e7c66" />

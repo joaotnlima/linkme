@@ -55,6 +55,16 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
     return s;
   };
 
+  const layout = f.layout ?? settings.layout;
+  const bannerUrl = f.bannerUrl ?? settings.bannerUrl;
+  const headingStyle = { fontFamily: "var(--font-heading)" } as const;
+  const photoBig = settings.avatarUrl
+    ? <img src={settings.avatarUrl} alt="" className="w-full aspect-[4/5] object-cover rounded-2xl bg-tile" />
+    : <div className="w-full aspect-[4/5] rounded-2xl bg-tile flex items-center justify-center"><span className="text-[11px] font-semibold uppercase tracking-wide text-muted">Your photo</span></div>;
+  const avatarSm = (extra = "") => settings.avatarUrl
+    ? <img src={settings.avatarUrl} alt="" className={`w-20 h-20 object-cover ${shape} ${extra}`} />
+    : <div className={`w-20 h-20 bg-accent text-white flex items-center justify-center text-2xl font-bold ${shape} ${extra}`}>{name.trim()[0]?.toUpperCase() ?? "•"}</div>;
+  const texts = <>{bio ? <p className="text-xs text-muted leading-snug max-w-[240px]">{bio}</p> : null}{tagline ? <p className="text-[13px] font-medium max-w-[240px]">{tagline}</p> : null}</>;
   const fontHref = googleFontsHref(googleFamilies(f.fontBody ?? settings.fontBody, f.fontHeading ?? settings.fontHeading));
 
   return (
@@ -82,18 +92,38 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
         >
           <div className="absolute inset-0">{renderBackground(f.background ?? settings.background)}</div>
           <div className={`relative z-10 flex flex-col gap-3 px-4 pt-6 pb-8 ${editorial ? "text-left" : "items-center text-center"}`}>
-            {editorial ? (
-              settings.avatarUrl
-                ? <img src={settings.avatarUrl} alt="" className="w-full aspect-[4/5] object-cover rounded-2xl bg-tile" />
-                : <div className="w-full aspect-[4/5] rounded-2xl bg-tile flex items-end p-3"><span className="text-[11px] font-semibold uppercase tracking-wide text-muted">Your photo</span></div>
+            {layout === "banner" ? (
+              <>
+                <div className="w-full h-16 rounded-xl bg-accent overflow-hidden" style={bannerUrl ? { backgroundImage: `url(${bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} />
+                {avatarSm("-mt-8 border-4")}
+                <h1 className="text-lg font-bold leading-tight" style={headingStyle}>{name}</h1>
+                {texts}
+              </>
+            ) : layout === "callout" ? (
+              <>
+                <h1 className="text-2xl font-bold leading-tight tracking-tight" style={headingStyle}>{name}</h1>
+                {photoBig}
+                {texts}
+              </>
+            ) : layout === "hero" ? (
+              <>
+                {photoBig}
+                <h1 className="text-xl font-bold leading-tight" style={headingStyle}>{name}</h1>
+                {texts}
+              </>
+            ) : editorial ? (
+              <>
+                {photoBig}
+                <h1 className="text-xl font-bold leading-tight" style={headingStyle}>{tagline || name}</h1>
+                {bio ? <p className="text-xs text-muted leading-snug max-w-[240px]">{bio}</p> : null}
+              </>
             ) : (
-              settings.avatarUrl
-                ? <img src={settings.avatarUrl} alt="" className={`w-20 h-20 object-cover ${shape}`} />
-                : <div className={`w-20 h-20 bg-accent text-white flex items-center justify-center text-2xl font-bold ${shape}`}>{name.trim()[0]?.toUpperCase() ?? "•"}</div>
+              <>
+                {avatarSm()}
+                <h1 className="text-lg font-bold leading-tight" style={headingStyle}>{name}</h1>
+                {texts}
+              </>
             )}
-            <h1 className={`font-bold leading-tight ${editorial ? "text-xl" : "text-lg"}`} style={{ fontFamily: "var(--font-heading)" }}>{editorial ? (tagline || name) : name}</h1>
-            {bio ? <p className="text-xs text-muted leading-snug max-w-[240px]">{bio}</p> : null}
-            {!editorial && tagline ? <p className="text-[13px] font-medium max-w-[240px]">{tagline}</p> : null}
             {socials.length ? (
               <div className="flex gap-2 pt-0.5">
                 {socials.map((s) => (

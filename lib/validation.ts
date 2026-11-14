@@ -39,7 +39,7 @@ export const settingsInput = z.object({
   siteDescription: z.string().trim().max(200),
   themeDefault: z.enum(["auto", "light", "dark"]),
   footer: z.string().trim().max(80),
-  layout: z.enum(["editorial", "classic"]).default("editorial"),
+  layout: z.enum(["editorial", "classic", "hero", "banner", "callout"]).default("editorial"),
   background: z.enum(BACKGROUND_KEYS).default("paths"),
   accentLight: hexColor.default("#0e7c66"),
   accentDark: hexColor.default("#3ccba8"),

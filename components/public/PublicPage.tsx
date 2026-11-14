@@ -1,7 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Feed, Link, Post, Settings } from "@/lib/db/schema";
 import { Background } from "./Background";
-import { Customize, customMainProps, shapeClass } from "./Customize";
+import { Customize, customMainProps } from "./Customize";
+import { ProfileHeader } from "./ProfileHeader";
 import { ThemeToggle } from "./ThemeToggle";
 import { CopyButton } from "./CopyButton";
 import { LinkIcon } from "./Icon";
@@ -117,17 +118,7 @@ export function PublicPage({ settings, feeds, links, posts, qrSvg, siteUrl }: Pa
       <Background variant={settings.background} />
       <div className="relative z-10 mx-auto w-full max-w-[640px] px-4 pt-5 pb-10 md:px-6 md:pt-8 flex flex-col gap-5 md:gap-6">
         <div className="flex justify-end gap-2.5"><ShareCard url={siteUrl} qrSvg={qrSvg} name={settings.displayName} bio={settings.bio} avatarUrl={settings.avatarUrl} initials={initials(settings.displayName)} /><ThemeToggle /></div>
-        <header className="flex flex-col items-center gap-2.5 text-center">
-          {settings.avatarUrl ? (
-            <img src={settings.avatarUrl} alt="" width={112} height={112} className={`w-24 h-24 md:w-28 md:h-28 ${shapeClass(settings.profileShape)} object-cover`} />
-          ) : (
-            <div aria-hidden="true" className={`w-24 h-24 md:w-28 md:h-28 ${shapeClass(settings.profileShape)} bg-accent text-white flex items-center justify-center text-4xl font-bold`}>{initials(settings.displayName)}</div>
-          )}
-          <h1 className="cz-heading text-[22px] md:text-[26px] font-bold leading-tight">{settings.displayName}</h1>
-          {settings.bio ? <p className="text-[15px] md:text-base leading-relaxed text-muted max-w-[420px]">{settings.bio}</p> : null}
-          {settings.tagline ? <p className="mt-1 text-sm md:text-base font-medium max-w-[460px]">{settings.tagline}</p> : null}
-          {settings.quote ? <p className="text-xs md:text-[13px] italic text-muted max-w-[460px]">{settings.quote}</p> : null}
-        </header>
+        <ProfileHeader settings={settings} />
         <Socials links={links} />
         <PublicBody feeds={feeds} links={links} posts={posts} />
         <MadeBy footer={settings.footer || hostOf(siteUrl)} />

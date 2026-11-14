@@ -25,7 +25,8 @@ export const settings = links.table("settings", {
   siteDescription: text("site_description").default(""),
   themeDefault: text("theme_default").notNull().default("auto"), // auto | light | dark
   footer: text("footer").default(""),
-  layout: text("layout").notNull().default("editorial"), // editorial | classic
+  layout: text("layout").notNull().default("editorial"), // DESKTOP header: editorial | classic | hero | banner | callout
+  layoutMobile: text("layout_mobile").notNull().default("classic"), // MOBILE header: classic | hero | banner | callout
   background: text("background").notNull().default("paths"), // animated scene key (components/public/backgrounds.tsx)
   // ---- customization (Look → Design) ----
   accentLight: text("accent_light").notNull().default("#0e7c66"),

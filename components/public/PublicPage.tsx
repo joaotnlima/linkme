@@ -110,8 +110,9 @@ export function Socials({ links }: { links: Link[] }) {
   );
 }
 
-export function PublicPage({ settings, feeds, links, posts, qrSvg, siteUrl }: PageData) {
-  const fullBleed = ["hero", "banner", "callout"].includes(settings.layout);
+export function PublicPage({ settings, feeds, links, posts, qrSvg, siteUrl, forceLayout }: PageData & { forceLayout?: string }) {
+  const activeLayout = forceLayout ?? settings.layout;
+  const fullBleed = ["hero", "banner", "callout"].includes(activeLayout);
   const share = (
     <div className={fullBleed ? "absolute top-4 right-4 z-20 flex gap-2.5" : "flex justify-end gap-2.5"}>
       <ShareCard url={siteUrl} qrSvg={qrSvg} name={settings.displayName} bio={settings.bio} avatarUrl={settings.avatarUrl} initials={initials(settings.displayName)} />
@@ -125,11 +126,11 @@ export function PublicPage({ settings, feeds, links, posts, qrSvg, siteUrl }: Pa
       <Background variant={settings.background} />
       <div className="relative z-10 mx-auto w-full max-w-[640px] pb-10 flex flex-col gap-5 md:gap-6">
         {fullBleed ? (
-          <ProfileHeader settings={settings} share={share} />
+          <ProfileHeader settings={settings} share={share} layout={activeLayout} />
         ) : (
           <div className="px-4 pt-5 md:px-6 md:pt-8 flex flex-col gap-5 md:gap-6">
             {share}
-            <ProfileHeader settings={settings} />
+            <ProfileHeader settings={settings} layout={activeLayout} />
           </div>
         )}
         <div className="px-4 md:px-6 flex flex-col gap-5 md:gap-6">

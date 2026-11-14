@@ -23,7 +23,7 @@ export function LookAdmin({ settings, feeds, links, posts, hasInstagram }: Props
   const initials = settings.displayName.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
 
   return (
-    <div className="look-wide xl:grid xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-8 xl:items-start">
+    <div className="look-wide xl:grid xl:grid-cols-[minmax(0,1fr)_490px] xl:gap-8 xl:items-start">
      <div className="flex flex-col gap-3 min-w-0">
       <div className="flex gap-1 bg-card border border-line rounded-full p-1 self-start text-sm font-semibold">
         <button type="button" onClick={() => setTab("content")} aria-current={tab === "content"} className={`h-9 px-5 rounded-full cursor-pointer ${tab === "content" ? "bg-ink text-bg" : "text-muted"}`}>Content</button>

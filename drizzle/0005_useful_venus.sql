@@ -1,0 +1,1 @@
+ALTER TABLE "links"."settings" ADD COLUMN "layout_mobile" text DEFAULT 'classic' NOT NULL;

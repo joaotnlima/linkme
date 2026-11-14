@@ -19,6 +19,7 @@ const DARK = { "--bg": "#121214", "--card": "#1c1c20", "--line": "#2a2a30", "--i
 export function LivePreview({ settings, links }: { settings: Settings; links: Link[] }) {
   const [f, setF] = useState<Form>({});
   const [dark, setDark] = useState(false);
+  const [device, setDevice] = useState<"mobile" | "desktop">("mobile");
 
   useEffect(() => {
     const form = document.getElementById("look-form") as HTMLFormElement | null;
@@ -42,7 +43,8 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
   const cards = links.filter((l) => l.display !== "icon").slice(0, 3);
   const socials = links.filter((l) => l.display === "icon").slice(0, 5);
   const shape = SHAPE[f.profileShape ?? settings.profileShape] ?? "rounded-full";
-  const editorial = (f.layout ?? settings.layout) === "editorial";
+  const layout = device === "desktop" ? (f.layout ?? settings.layout) : (f.layoutMobile ?? settings.layoutMobile);
+  const editorial = layout === "editorial";
   const bs = f.buttonStyle ?? settings.buttonStyle;
   const br = f.buttonRadius ?? settings.buttonRadius;
   const radiusPx = br === "pill" ? 9999 : br === "sharp" ? 8 : 16;
@@ -55,7 +57,6 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
     return s;
   };
 
-  const layout = f.layout ?? settings.layout;
   const bannerUrl = f.bannerUrl ?? settings.bannerUrl;
   const headingStyle = { fontFamily: "var(--font-heading)" } as const;
   const photoBig = settings.avatarUrl
@@ -76,9 +77,13 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
       {fontHref ? <link rel="stylesheet" href={fontHref} precedence="default" /> : null}
       <div className="flex items-center gap-2 text-xs">
         <span className="font-semibold text-muted uppercase tracking-wider">Live preview</span>
+        <div className="flex bg-bg border border-line rounded-full p-0.5">
+          <button type="button" onClick={() => setDevice("mobile")} aria-pressed={device === "mobile"} className={`h-6 px-2.5 rounded-full text-[11px] font-semibold cursor-pointer ${device === "mobile" ? "bg-ink text-bg" : "text-muted"}`}>Mobile</button>
+          <button type="button" onClick={() => setDevice("desktop")} aria-pressed={device === "desktop"} className={`h-6 px-2.5 rounded-full text-[11px] font-semibold cursor-pointer ${device === "desktop" ? "bg-ink text-bg" : "text-muted"}`}>Desktop</button>
+        </div>
         <button type="button" onClick={() => setDark((d) => !d)} className="h-7 px-2.5 rounded-full border border-line text-[12px] font-semibold cursor-pointer">{dark ? "Dark" : "Light"}</button>
       </div>
-      <div className="w-[300px] h-[600px] rounded-[2.2rem] border-[6px] border-ink/80 bg-black overflow-hidden shadow-xl">
+      <div className="rounded-[2.2rem] border-[6px] border-ink/80 bg-black overflow-hidden shadow-xl" style={{ width: device === "desktop" ? 460 : 300, height: 600 }}>
         <div
           className="relative w-full h-full overflow-y-auto"
           data-btn={f.buttonStyle ?? settings.buttonStyle}

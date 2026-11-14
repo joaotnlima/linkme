@@ -23,6 +23,13 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page() {
   const [data, qrSvg] = await Promise.all([getPublicPage(), siteQrSvg()]);
   const props = { ...data, qrSvg, siteUrl };
-  if (data.settings.layout === "editorial") return <PublicPageEditorial {...props} />;
-  return <PublicPage {...props} />;
+  const desktop = data.settings.layout === "editorial"
+    ? <PublicPageEditorial {...props} />
+    : <PublicPage {...props} forceLayout={data.settings.layout} />;
+  return (
+    <>
+      <div className="md:hidden flex-1 flex flex-col"><PublicPage {...props} forceLayout={data.settings.layoutMobile} /></div>
+      <div className="hidden md:flex flex-1 flex-col">{desktop}</div>
+    </>
+  );
 }

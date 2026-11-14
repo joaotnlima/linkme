@@ -40,6 +40,7 @@ export const settingsInput = z.object({
   themeDefault: z.enum(["auto", "light", "dark"]),
   footer: z.string().trim().max(80),
   layout: z.enum(["editorial", "classic", "hero", "banner", "callout"]).default("editorial"),
+  layoutMobile: z.enum(["classic", "hero", "banner", "callout"]).default("classic"),
   background: z.enum(BACKGROUND_KEYS).default("paths"),
   accentLight: hexColor.default("#0e7c66"),
   accentDark: hexColor.default("#3ccba8"),

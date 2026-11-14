@@ -15,8 +15,8 @@ function initials(name: string) {
  * - banner: full-bleed cover image + overlapping avatar, name/bio below.
  * For hero/callout/banner the page passes `share` (share + theme toggle) to overlay.
  */
-export function ProfileHeader({ settings, share }: { settings: Settings; share?: ReactNode }) {
-  const v = settings.layout;
+export function ProfileHeader({ settings, share, layout }: { settings: Settings; share?: ReactNode; layout?: string }) {
+  const v = layout ?? settings.layout;
   const name = settings.displayName;
 
   const Texts = () => (

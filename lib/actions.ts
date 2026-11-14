@@ -213,6 +213,7 @@ export async function updateSettings(_prev: ActionResult | null, fd: FormData): 
       themeDefault: str(fd, "themeDefault") || "auto",
       footer: str(fd, "footer"),
       layout: str(fd, "layout") || "editorial",
+      layoutMobile: str(fd, "layoutMobile") || "classic",
       background: str(fd, "background") || "paths",
       accentLight: str(fd, "accentLight") || "#0e7c66",
       accentDark: str(fd, "accentDark") || "#3ccba8",

@@ -4,6 +4,9 @@ import { fontStack, googleFamilies, googleFontsHref } from "@/lib/font-options";
 
 const hex = (v: string | null | undefined, fallback: string) => (/^#[0-9a-fA-F]{6}$/.test(v ?? "") ? (v as string) : fallback);
 
+const SHAPE: Record<string, string> = { circle: "rounded-full", rounded: "rounded-2xl", squircle: "rounded-[32%]", burst: "cz-burst" };
+export const shapeClass = (shape?: string | null) => SHAPE[shape ?? "circle"] ?? "rounded-full";
+
 /**
  * Props to spread on the public page's root <main>: button style/roundness hooks
  * (consumed by the .cz-* rules in globals.css) and the chosen fonts as CSS vars.

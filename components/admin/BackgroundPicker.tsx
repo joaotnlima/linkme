@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BACKGROUNDS, DEFAULT_BACKGROUND, type BackgroundKey } from "@/components/public/backgrounds";
 
 // Live, theme-aware background picker. Each tile renders the real background so
@@ -9,10 +9,12 @@ import { BACKGROUNDS, DEFAULT_BACKGROUND, type BackgroundKey } from "@/component
 export function BackgroundPicker({ value }: { value?: string | null }) {
   const initial = (BACKGROUNDS.some((b) => b.key === value) ? value : DEFAULT_BACKGROUND) as BackgroundKey;
   const [selected, setSelected] = useState<BackgroundKey>(initial);
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => { ref.current?.dispatchEvent(new Event("input", { bubbles: true })); }, [selected]);
   return (
     <div className="flex flex-col gap-2">
       <span className="text-sm font-semibold text-ink">Background</span>
-      <input type="hidden" name="background" value={selected} />
+      <input ref={ref} type="hidden" name="background" value={selected} />
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
         {BACKGROUNDS.map(({ key, label, Component }) => {
           const on = key === selected;

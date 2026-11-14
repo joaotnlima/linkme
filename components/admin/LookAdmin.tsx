@@ -63,18 +63,15 @@ export function LookAdmin({ settings, feeds, links, posts, hasInstagram }: Props
                 <Field label="Tagline" name="tagline" error={f.tagline}><textarea id="tagline" name="tagline" defaultValue={settings.tagline ?? ""} rows={2} maxLength={200} className={`${inputCls} h-auto py-3 resize-none`} /></Field>
                 <Field label="Quote (small, italic)" name="quote" error={f.quote}><input id="quote" name="quote" defaultValue={settings.quote ?? ""} maxLength={200} className={inputCls} /></Field>
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label="Page layout" name="layout">
-                    <select id="layout" name="layout" defaultValue={settings.layout} className={inputCls}><option value="editorial">Editorial (photo + one button)</option><option value="classic">Classic (centered list)</option></select>
-                  </Field>
                   <Field label="Primary button (lead link)" name="leadLinkId">
                     <select id="leadLinkId" name="leadLinkId" defaultValue={settings.leadLinkId ?? ""} className={inputCls}><option value="">None</option>{links.filter((l) => l.display !== "icon").map((l) => <option key={l.id} value={l.id}>{l.title}</option>)}</select>
                   </Field>
+                  <Field label="Button label" name="ctaLabel" error={f.ctaLabel}><input id="ctaLabel" name="ctaLabel" defaultValue={settings.ctaLabel ?? ""} maxLength={40} placeholder="defaults to the link title" className={inputCls} /></Field>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label="Button label" name="ctaLabel" error={f.ctaLabel}><input id="ctaLabel" name="ctaLabel" defaultValue={settings.ctaLabel ?? ""} maxLength={40} placeholder="defaults to the link title" className={inputCls} /></Field>
                   <Field label="Site title (browser / share)" name="siteTitle" error={f.siteTitle}><input id="siteTitle" name="siteTitle" defaultValue={settings.siteTitle ?? ""} maxLength={80} className={inputCls} /></Field>
+                  <Field label="Share description" name="siteDescription" error={f.siteDescription}><input id="siteDescription" name="siteDescription" defaultValue={settings.siteDescription ?? ""} maxLength={200} className={inputCls} /></Field>
                 </div>
-                <Field label="Share description" name="siteDescription" error={f.siteDescription}><input id="siteDescription" name="siteDescription" defaultValue={settings.siteDescription ?? ""} maxLength={200} className={inputCls} /></Field>
                 <Field label="Footer text" name="footer" error={f.footer}><input id="footer" name="footer" defaultValue={settings.footer ?? ""} maxLength={80} className={inputCls} /></Field>
               </div>
               <div className={tab === "design" ? "flex flex-col gap-3.5" : "hidden"}>

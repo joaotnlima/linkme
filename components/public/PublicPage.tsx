@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Feed, Link, Post, Settings } from "@/lib/db/schema";
 import { Background } from "./Background";
-import { Customize, customMainProps } from "./Customize";
+import { Customize, customMainProps, shapeClass } from "./Customize";
 import { ThemeToggle } from "./ThemeToggle";
 import { CopyButton } from "./CopyButton";
 import { LinkIcon } from "./Icon";
@@ -119,9 +119,9 @@ export function PublicPage({ settings, feeds, links, posts, qrSvg, siteUrl }: Pa
         <div className="flex justify-end gap-2.5"><ShareCard url={siteUrl} qrSvg={qrSvg} name={settings.displayName} bio={settings.bio} avatarUrl={settings.avatarUrl} initials={initials(settings.displayName)} /><ThemeToggle /></div>
         <header className="flex flex-col items-center gap-2.5 text-center">
           {settings.avatarUrl ? (
-            <img src={settings.avatarUrl} alt="" width={112} height={112} className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover" />
+            <img src={settings.avatarUrl} alt="" width={112} height={112} className={`w-24 h-24 md:w-28 md:h-28 ${shapeClass(settings.profileShape)} object-cover`} />
           ) : (
-            <div aria-hidden="true" className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-accent text-white flex items-center justify-center text-4xl font-bold">{initials(settings.displayName)}</div>
+            <div aria-hidden="true" className={`w-24 h-24 md:w-28 md:h-28 ${shapeClass(settings.profileShape)} bg-accent text-white flex items-center justify-center text-4xl font-bold`}>{initials(settings.displayName)}</div>
           )}
           <h1 className="cz-heading text-[22px] md:text-[26px] font-bold leading-tight">{settings.displayName}</h1>
           {settings.bio ? <p className="text-[15px] md:text-base leading-relaxed text-muted max-w-[420px]">{settings.bio}</p> : null}

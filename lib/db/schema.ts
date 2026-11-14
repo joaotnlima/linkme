@@ -26,7 +26,22 @@ export const settings = links.table("settings", {
   themeDefault: text("theme_default").notNull().default("auto"), // auto | light | dark
   footer: text("footer").default(""),
   layout: text("layout").notNull().default("editorial"), // editorial | classic
-  background: text("background").notNull().default("paths"), // key from components/public/backgrounds.tsx
+  background: text("background").notNull().default("paths"), // animated scene key (components/public/backgrounds.tsx)
+  // ---- customization (Look → Design) ----
+  accentLight: text("accent_light").notNull().default("#0e7c66"),
+  accentDark: text("accent_dark").notNull().default("#3ccba8"),
+  buttonStyle: text("button_style").notNull().default("solid"), // solid | glass | outline
+  buttonRadius: text("button_radius").notNull().default("rounded"), // sharp | rounded | pill
+  wallpaper: text("wallpaper").notNull().default("animated"), // animated | solid | gradient | image | video
+  wallpaperColor: text("wallpaper_color"), // solid fill / gradient stop 1
+  wallpaperColor2: text("wallpaper_color2"), // gradient stop 2
+  wallpaperImageUrl: text("wallpaper_image_url"),
+  wallpaperVideoUrl: text("wallpaper_video_url"),
+  profileShape: text("profile_shape").notNull().default("circle"), // circle | rounded | squircle | burst
+  bannerUrl: text("banner_url"),
+  logoUrl: text("logo_url"),
+  fontBody: text("font_body").notNull().default("default"),
+  fontHeading: text("font_heading").notNull().default("default"),
   ctaLabel: text("cta_label").default(""),
   leadLinkId: uuid("lead_link_id"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

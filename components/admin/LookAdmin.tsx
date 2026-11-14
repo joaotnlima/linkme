@@ -6,6 +6,8 @@ import type { Feed, Link, Post, Settings } from "@/lib/db/schema";
 import { addPostByUrl, deleteFeed, deletePost, moveFeed, refetchPost, setAvatar, syncInstagram, updatePost, updateSettings, upsertFeed } from "@/lib/actions";
 import { ActionButton, ActionForm, Field, Status, Toggle, inputCls } from "./ui";
 import { BackgroundPicker } from "./BackgroundPicker";
+import { DesignControls } from "./DesignControls";
+import { LivePreview } from "./LivePreview";
 import { hostOf } from "@/lib/slug";
 
 type Props = { settings: Settings; feeds: Feed[]; links: Link[]; posts: Post[]; hasInstagram: boolean };
@@ -19,7 +21,8 @@ export function LookAdmin({ settings, feeds, links, posts, hasInstagram }: Props
   const initials = settings.displayName.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="look-wide xl:grid xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-8 xl:items-start">
+     <div className="flex flex-col gap-3 min-w-0">
       <div className={cardCls}>
         <div className="flex items-center gap-3.5">
           {settings.avatarUrl ? <img src={settings.avatarUrl} alt="" className="w-[72px] h-[72px] rounded-full object-cover shrink-0" /> : <div className="w-[72px] h-[72px] rounded-full bg-accent text-white flex items-center justify-center text-2xl font-bold shrink-0">{initials}</div>}
@@ -42,7 +45,7 @@ export function LookAdmin({ settings, feeds, links, posts, hasInstagram }: Props
         </div>
       </div>
 
-      <ActionForm action={updateSettings} className="flex flex-col gap-3.5">
+      <ActionForm id="look-form" action={updateSettings} className="flex flex-col gap-3.5">
         {(state, pending) => {
           const f = state && !state.ok ? state.fields ?? {} : {};
           return (
@@ -70,6 +73,7 @@ export function LookAdmin({ settings, feeds, links, posts, hasInstagram }: Props
                 <Field label="Share description" name="siteDescription" error={f.siteDescription}><input id="siteDescription" name="siteDescription" defaultValue={settings.siteDescription ?? ""} maxLength={200} className={inputCls} /></Field>
               </div>
               <Field label="Footer text" name="footer" error={f.footer}><input id="footer" name="footer" defaultValue={settings.footer ?? ""} maxLength={80} className={inputCls} /></Field>
+              <DesignControls settings={settings} />
               <BackgroundPicker value={settings.background} />
               <div className="flex items-center gap-3"><button type="submit" disabled={pending} className="h-12 px-5 rounded-2xl bg-accent text-white font-semibold disabled:opacity-60 cursor-pointer">{pending ? "Saving…" : "Save & publish"}</button><Status state={state} /></div>
             </>
@@ -180,6 +184,10 @@ export function LookAdmin({ settings, feeds, links, posts, hasInstagram }: Props
           </ActionForm>
         </Modal>
       ) : null}
+     </div>
+     <aside className="hidden xl:block xl:sticky xl:top-4">
+       <LivePreview settings={settings} links={links} />
+     </aside>
     </div>
   );
 }

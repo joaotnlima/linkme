@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Feed, Link, Post, Settings } from "@/lib/db/schema";
 import { Background } from "./Background";
+import { Customize, customMainProps } from "./Customize";
 import { ThemeToggle } from "./ThemeToggle";
 import { CopyButton } from "./CopyButton";
 import { LinkIcon } from "./Icon";
@@ -21,7 +22,7 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
 export function Card({ link, featured }: { link: Link; featured: boolean }) {
   const href = `/go/${link.slug}`;
   return (
-    <div className={`card-hover flex items-stretch rounded-2xl border ${featured ? "bg-accent-soft border-accent min-h-[72px]" : "bg-card border-line min-h-14"}`}>
+    <div className={`card-hover cz-radius cz-surface flex items-stretch rounded-2xl border ${featured ? "cz-featured bg-accent-soft border-accent min-h-[72px]" : "bg-card border-line min-h-14"}`}>
       <a href={href} rel="noopener" className={`flex-1 min-w-0 flex items-center gap-3 ${featured ? "py-3 pl-3.5 pr-2" : "py-2 pl-3.5 pr-2"}`}>
         <LinkIcon title={link.title} iconUrl={link.iconUrl} iconEmoji={link.iconEmoji} url={link.url} />
         <span className="flex flex-col min-w-0">
@@ -110,8 +111,9 @@ export function Socials({ links }: { links: Link[] }) {
 
 export function PublicPage({ settings, feeds, links, posts, qrSvg, siteUrl }: PageData) {
   return (
-    <main className="relative flex-1 overflow-hidden" data-theme-default={settings.themeDefault}>
+    <main {...customMainProps(settings)} className="relative flex-1 overflow-hidden" data-theme-default={settings.themeDefault}>
       <script dangerouslySetInnerHTML={{ __html: `document.documentElement.setAttribute('data-theme-default',${JSON.stringify(settings.themeDefault)})` }} />
+      <Customize settings={settings} />
       <Background variant={settings.background} />
       <div className="relative z-10 mx-auto w-full max-w-[640px] px-4 pt-5 pb-10 md:px-6 md:pt-8 flex flex-col gap-5 md:gap-6">
         <div className="flex justify-end gap-2.5"><ShareCard url={siteUrl} qrSvg={qrSvg} name={settings.displayName} bio={settings.bio} avatarUrl={settings.avatarUrl} initials={initials(settings.displayName)} /><ThemeToggle /></div>
@@ -121,7 +123,7 @@ export function PublicPage({ settings, feeds, links, posts, qrSvg, siteUrl }: Pa
           ) : (
             <div aria-hidden="true" className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-accent text-white flex items-center justify-center text-4xl font-bold">{initials(settings.displayName)}</div>
           )}
-          <h1 className="text-[22px] md:text-[26px] font-bold leading-tight">{settings.displayName}</h1>
+          <h1 className="cz-heading text-[22px] md:text-[26px] font-bold leading-tight">{settings.displayName}</h1>
           {settings.bio ? <p className="text-[15px] md:text-base leading-relaxed text-muted max-w-[420px]">{settings.bio}</p> : null}
           {settings.tagline ? <p className="mt-1 text-sm md:text-base font-medium max-w-[460px]">{settings.tagline}</p> : null}
           {settings.quote ? <p className="text-xs md:text-[13px] italic text-muted max-w-[460px]">{settings.quote}</p> : null}

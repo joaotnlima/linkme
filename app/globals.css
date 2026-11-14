@@ -111,6 +111,18 @@ body {
 /* One switch disables motion for every selectable background. */
 @media (prefers-reduced-motion: reduce) { .bg-scene *, .bgx-grid, .bgx-mesh { animation: none !important; } }
 
+/* Customization hooks (Look → Design). Driven by data-btn / data-btnr on <main>. */
+.cz-heading { font-family: var(--font-heading); }
+[data-btnr="sharp"] .cz-radius { border-radius: 8px !important; }
+[data-btnr="pill"] .cz-radius { border-radius: 9999px !important; }
+[data-btn="glass"] .cz-surface:not(.cz-featured) { background: color-mix(in srgb, var(--card) 50%, transparent) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+[data-btn="outline"] .cz-surface:not(.cz-featured) { background: transparent !important; }
+
+/* Admin live preview: a self-contained theme so it renders light/dark regardless of the admin's theme. */
+.cz-preview { --bg:#f4f3ef; --card:#ffffff; --line:#e2e0d8; --ink:#16161a; --muted:#5f5e58; --tile:#e9e7e0; --accent:#0e7c66; --accent-soft:#e6f2ef; --bg-stroke:#8a8880; --bg-opacity:0.32; background:var(--bg); color:var(--ink); }
+.cz-preview.dark { --bg:#121214; --card:#1c1c20; --line:#2a2a30; --ink:#eceae4; --muted:#a3a19a; --tile:#2a2a30; --accent:#3ccba8; --accent-soft:#15302b; --bg-stroke:#8c8a83; --bg-opacity:0.38; }
+.cz-burst { clip-path: polygon(50% 0, 63% 10%, 79% 6%, 85% 22%, 100% 30%, 92% 45%, 100% 62%, 84% 68%, 79% 85%, 62% 82%, 50% 100%, 38% 82%, 21% 85%, 16% 68%, 0 62%, 8% 45%, 0 30%, 15% 22%, 21% 6%, 37% 10%); }
+
 /* Editorial hero: 300 ms staggered reveal, once, on load. */
 .reveal { animation: reveal .3s ease-out both; }
 .reveal-1 { animation-delay: 0ms } .reveal-2 { animation-delay: 60ms } .reveal-3 { animation-delay: 120ms } .reveal-4 { animation-delay: 180ms } .reveal-5 { animation-delay: 260ms }

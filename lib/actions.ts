@@ -214,11 +214,35 @@ export async function updateSettings(_prev: ActionResult | null, fd: FormData): 
       footer: str(fd, "footer"),
       layout: str(fd, "layout") || "editorial",
       background: str(fd, "background") || "paths",
+      accentLight: str(fd, "accentLight") || "#0e7c66",
+      accentDark: str(fd, "accentDark") || "#3ccba8",
+      buttonStyle: str(fd, "buttonStyle") || "solid",
+      buttonRadius: str(fd, "buttonRadius") || "rounded",
+      wallpaper: str(fd, "wallpaper") || "animated",
+      wallpaperColor: str(fd, "wallpaperColor"),
+      wallpaperColor2: str(fd, "wallpaperColor2"),
+      wallpaperImageUrl: str(fd, "wallpaperImageUrl"),
+      wallpaperVideoUrl: str(fd, "wallpaperVideoUrl"),
+      profileShape: str(fd, "profileShape") || "circle",
+      bannerUrl: str(fd, "bannerUrl"),
+      logoUrl: str(fd, "logoUrl"),
+      fontBody: str(fd, "fontBody") || "default",
+      fontHeading: str(fd, "fontHeading") || "default",
       ctaLabel: str(fd, "ctaLabel"),
       leadLinkId: str(fd, "leadLinkId"),
     });
     const db = await getDb();
-    await db.update(settings).set({ ...input, leadLinkId: input.leadLinkId || null, updatedAt: new Date() }).where(eq(settings.id, 1));
+    await db.update(settings).set({
+      ...input,
+      leadLinkId: input.leadLinkId || null,
+      wallpaperColor: input.wallpaperColor || null,
+      wallpaperColor2: input.wallpaperColor2 || null,
+      wallpaperImageUrl: input.wallpaperImageUrl || null,
+      wallpaperVideoUrl: input.wallpaperVideoUrl || null,
+      bannerUrl: input.bannerUrl || null,
+      logoUrl: input.logoUrl || null,
+      updatedAt: new Date(),
+    }).where(eq(settings.id, 1));
     publish();
     return { ok: true };
   } catch (e) {

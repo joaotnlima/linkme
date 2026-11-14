@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { Background } from "./Background";
+import { Customize, customMainProps } from "./Customize";
 import { ThemeToggle } from "./ThemeToggle";
 import { LinkIcon } from "./Icon";
 import { PublicBody, initials, type PageData } from "./PublicPage";
@@ -22,8 +23,9 @@ export function PublicPageEditorial({ settings, feeds, links, posts, qrSvg, site
   const headline = settings.tagline || settings.displayName;
 
   return (
-    <main className="relative flex-1 overflow-hidden" data-theme-default={settings.themeDefault}>
+    <main {...customMainProps(settings)} className="relative flex-1 overflow-hidden" data-theme-default={settings.themeDefault}>
       <script dangerouslySetInnerHTML={{ __html: `document.documentElement.setAttribute('data-theme-default',${JSON.stringify(settings.themeDefault)})` }} />
+      <Customize settings={settings} />
       <div className="absolute inset-0" style={{ opacity: 0.5 }}>
         <Background variant={settings.background} />
       </div>
@@ -47,12 +49,12 @@ export function PublicPageEditorial({ settings, feeds, links, posts, qrSvg, site
 
           <div className="order-2 md:order-1 flex flex-col gap-4">
             {settings.bio ? <p className="reveal reveal-1 text-sm md:text-[15px] font-semibold uppercase tracking-[0.08em] text-muted">{settings.bio}</p> : null}
-            <h1 className="reveal reveal-2 text-[28px] leading-[1.15] md:text-[40px] font-bold tracking-tight max-w-[20ch]">{headline}</h1>
+            <h1 className="cz-heading reveal reveal-2 text-[28px] leading-[1.15] md:text-[40px] font-bold tracking-tight max-w-[20ch]">{headline}</h1>
             {settings.quote ? <p className="reveal reveal-3 text-sm md:text-base italic text-muted max-w-[46ch]">{settings.quote}</p> : null}
 
             <div className="reveal reveal-4 flex flex-col sm:flex-row gap-3 pt-2">
               {lead ? (
-                <a href={`/go/${lead.slug}`} rel="noopener" className="card-hover h-14 px-6 rounded-2xl bg-accent text-white font-semibold text-base flex items-center justify-center gap-2.5">
+                <a href={`/go/${lead.slug}`} rel="noopener" className="card-hover cz-radius h-14 px-6 rounded-2xl bg-accent text-white font-semibold text-base flex items-center justify-center gap-2.5">
                   <LinkIcon title={lead.title} iconUrl={lead.iconUrl} iconEmoji={lead.iconEmoji} url={lead.url} size={28} round />
                   {settings.ctaLabel || lead.title}
                 </a>

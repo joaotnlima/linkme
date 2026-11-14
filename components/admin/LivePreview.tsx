@@ -1,0 +1,99 @@
+"use client";
+
+/* eslint-disable @next/next/no-img-element */
+import { useEffect, useState } from "react";
+import type { Link, Settings } from "@/lib/db/schema";
+import { fontCss } from "@/lib/font-options";
+import { renderBackground } from "@/components/public/backgrounds";
+import { LinkIcon } from "@/components/public/Icon";
+
+type Form = Record<string, string>;
+
+const SHAPE: Record<string, string> = { circle: "rounded-full", rounded: "rounded-2xl", squircle: "rounded-[32%]", burst: "cz-burst" };
+
+const LIGHT = { "--bg": "#f4f3ef", "--card": "#ffffff", "--line": "#e2e0d8", "--ink": "#16161a", "--muted": "#5f5e58", "--tile": "#e9e7e0", "--bg-stroke": "#8a8880", "--bg-opacity": "0.32" } as Record<string, string>;
+const DARK = { "--bg": "#121214", "--card": "#1c1c20", "--line": "#2a2a30", "--ink": "#eceae4", "--muted": "#a3a19a", "--tile": "#2a2a30", "--bg-stroke": "#8c8a83", "--bg-opacity": "0.38" } as Record<string, string>;
+
+// Live, desktop-only preview of the public page. Reads the Look form on every
+// keystroke so owners see design changes before saving.
+export function LivePreview({ settings, links }: { settings: Settings; links: Link[] }) {
+  const [f, setF] = useState<Form>({});
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    const form = document.getElementById("look-form") as HTMLFormElement | null;
+    if (!form) return;
+    const read = () => {
+      const fd = new FormData(form);
+      const o: Form = {};
+      for (const [k, v] of fd.entries()) if (typeof v === "string") o[k] = v;
+      setF(o);
+    };
+    read();
+    form.addEventListener("input", read);
+    form.addEventListener("change", read);
+    return () => { form.removeEventListener("input", read); form.removeEventListener("change", read); };
+  }, []);
+
+  const name = f.displayName ?? settings.displayName;
+  const tagline = f.tagline ?? settings.tagline ?? "";
+  const bio = f.bio ?? settings.bio ?? "";
+  const accent = (dark ? f.accentDark : f.accentLight) || (dark ? "#3ccba8" : "#0e7c66");
+  const cards = links.filter((l) => l.display !== "icon").slice(0, 3);
+  const socials = links.filter((l) => l.display === "icon").slice(0, 5);
+  const shape = SHAPE[f.profileShape ?? settings.profileShape] ?? "rounded-full";
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div className="flex items-center gap-2 text-xs">
+        <span className="font-semibold text-muted uppercase tracking-wider">Live preview</span>
+        <button type="button" onClick={() => setDark((d) => !d)} className="h-7 px-2.5 rounded-full border border-line text-[12px] font-semibold cursor-pointer">{dark ? "Dark" : "Light"}</button>
+      </div>
+      <div className="w-[300px] h-[600px] rounded-[2.2rem] border-[6px] border-ink/80 bg-black overflow-hidden shadow-xl">
+        <div
+          className="relative w-full h-full overflow-y-auto"
+          data-btn={f.buttonStyle ?? settings.buttonStyle}
+          data-btnr={f.buttonRadius ?? settings.buttonRadius}
+          style={{
+            ...(dark ? DARK : LIGHT),
+            ["--accent" as string]: accent,
+            ["--accent-soft" as string]: `color-mix(in srgb, ${accent} ${dark ? 22 : 14}%, ${dark ? "#1c1c20" : "#ffffff"})`,
+            ["--font-body" as string]: fontCss(f.fontBody ?? settings.fontBody),
+            ["--font-heading" as string]: fontCss(f.fontHeading ?? settings.fontHeading),
+            fontFamily: "var(--font-body)",
+            background: "var(--bg)",
+            color: "var(--ink)",
+          }}
+        >
+          <div className="absolute inset-0">{renderBackground(f.background ?? settings.background)}</div>
+          <div className="relative z-10 flex flex-col items-center gap-3 px-4 pt-6 pb-8 text-center">
+            {settings.avatarUrl ? (
+              <img src={settings.avatarUrl} alt="" className={`w-20 h-20 object-cover ${shape}`} />
+            ) : (
+              <div className={`w-20 h-20 bg-accent text-white flex items-center justify-center text-2xl font-bold ${shape}`}>{name.trim()[0]?.toUpperCase() ?? "•"}</div>
+            )}
+            <h1 className="text-lg font-bold leading-tight" style={{ fontFamily: "var(--font-heading)" }}>{name}</h1>
+            {bio ? <p className="text-xs text-muted leading-snug max-w-[220px]">{bio}</p> : null}
+            {tagline ? <p className="text-[13px] font-medium max-w-[240px]">{tagline}</p> : null}
+            {socials.length ? (
+              <div className="flex gap-2 pt-0.5">
+                {socials.map((s) => (
+                  <span key={s.id} className="w-8 h-8 rounded-full bg-card border border-line flex items-center justify-center overflow-hidden"><LinkIcon title={s.title} iconUrl={s.iconUrl} iconEmoji={s.iconEmoji} url={s.url} size={32} round /></span>
+                ))}
+              </div>
+            ) : null}
+            <div className="w-full flex flex-col gap-2.5 pt-2">
+              {cards.map((l, i) => (
+                <div key={l.id} className={`card-hover cz-radius cz-surface flex items-center gap-2.5 rounded-2xl border px-2.5 py-2 ${i === 0 ? "cz-featured bg-accent-soft border-accent" : "bg-card border-line"}`}>
+                  <LinkIcon title={l.title} iconUrl={l.iconUrl} iconEmoji={l.iconEmoji} url={l.url} size={30} />
+                  <span className="text-[13px] font-semibold truncate">{l.title}</span>
+                </div>
+              ))}
+              {cards.length === 0 ? <div className="cz-radius cz-surface rounded-2xl border border-line bg-card px-3 py-3 text-xs text-muted">Your links appear here</div> : null}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

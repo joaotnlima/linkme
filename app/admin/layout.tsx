@@ -27,7 +27,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         )}
       </aside>
       <main className="flex-[999_1_560px] min-w-0 flex flex-col pb-24 md:pb-10">
-        <div className="w-full max-w-[760px] px-4 pt-5 md:px-10 md:pt-8 flex flex-col gap-4">{children}</div>
+        <div className="w-full max-w-[760px] [&:has(.look-wide)]:max-w-[1200px] px-4 pt-5 md:px-10 md:pt-8 flex flex-col gap-4">{children}</div>
       </main>
       <nav aria-label="Admin sections" className="md:hidden fixed bottom-0 inset-x-0 h-20 border-t border-line bg-card grid grid-cols-4 px-2 pt-2 pb-5 z-20">
         <AdminNav variant="tabbar" />

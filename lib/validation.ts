@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { BACKGROUND_KEYS } from "@/components/public/backgrounds";
+import { FONT_KEYS } from "@/lib/font-options";
+
+const hexColor = z.string().trim().regex(/^#[0-9a-fA-F]{6}$/, "Use a hex colour like #0e7c66");
+const optUrl = z.string().trim().max(600).optional().or(z.literal(""));
 
 /** http(s) URLs, plus mailto: and tel: (safe, non-script schemes). Bare hosts get https://. */
 export const httpUrl = z
@@ -38,6 +42,20 @@ export const settingsInput = z.object({
   footer: z.string().trim().max(80),
   layout: z.enum(["editorial", "classic"]).default("editorial"),
   background: z.enum(BACKGROUND_KEYS).default("paths"),
+  accentLight: hexColor.default("#0e7c66"),
+  accentDark: hexColor.default("#3ccba8"),
+  buttonStyle: z.enum(["solid", "glass", "outline"]).default("solid"),
+  buttonRadius: z.enum(["sharp", "rounded", "pill"]).default("rounded"),
+  wallpaper: z.enum(["animated", "solid", "gradient", "image", "video"]).default("animated"),
+  wallpaperColor: optUrl,
+  wallpaperColor2: optUrl,
+  wallpaperImageUrl: optUrl,
+  wallpaperVideoUrl: optUrl,
+  profileShape: z.enum(["circle", "rounded", "squircle", "burst"]).default("circle"),
+  bannerUrl: optUrl,
+  logoUrl: optUrl,
+  fontBody: z.enum(FONT_KEYS).default("default"),
+  fontHeading: z.enum(FONT_KEYS).default("default"),
   ctaLabel: z.string().trim().max(40),
   leadLinkId: z.string().uuid().optional().or(z.literal("")),
 });

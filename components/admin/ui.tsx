@@ -33,11 +33,13 @@ export function ActionForm({
   children,
   className,
   onDone,
+  id,
 }: {
   action: (prev: ActionResult | null, fd: FormData) => Promise<ActionResult>;
   children: (state: ActionResult | null, pending: boolean) => ReactNode;
   className?: string;
   onDone?: (state: ActionResult) => void;
+  id?: string;
 }) {
   const [state, formAction, pending] = useActionState(
     async (prev: ActionResult | null, fd: FormData) => {
@@ -48,7 +50,7 @@ export function ActionForm({
     null,
   );
   return (
-    <form action={formAction} className={className}>
+    <form id={id} action={formAction} className={className}>
       {children(state, pending)}
     </form>
   );

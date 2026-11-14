@@ -54,7 +54,7 @@ body {
 
 /* Discovery background: forking paths, one lights up. */
 .bg-path { stroke-dasharray: 6 9; animation: bg-drift 36s linear infinite; }
-.bg-accent { stroke-dasharray: 1; stroke-dashoffset: 1; animation: bg-draw 14s ease-in-out infinite; }
+.bg-lead { stroke-dasharray: 1; stroke-dashoffset: 1; animation: bg-draw 14s ease-in-out infinite; }
 .bg-dot { transform-box: fill-box; transform-origin: center; opacity: 0; animation: bg-pop 14s ease-in-out infinite; }
 .bg-ring { transform-box: fill-box; transform-origin: center; opacity: 0; animation: bg-ring 14s ease-out infinite; }
 .bg-q { transform-box: fill-box; transform-origin: center; animation: bg-float 7s ease-in-out infinite; }
@@ -65,8 +65,8 @@ body {
 @keyframes bg-ring { 0%, 46% { opacity: 0; transform: scale(.4); } 52% { opacity: .8; } 80%, 100% { opacity: 0; transform: scale(2.6); } }
 @keyframes bg-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
 @media (prefers-reduced-motion: reduce) {
-  .bg-path, .bg-accent, .bg-dot, .bg-ring, .bg-q { animation: none; }
-  .bg-accent { stroke-dashoffset: 0; }
+  .bg-path, .bg-lead, .bg-dot, .bg-ring, .bg-q { animation: none; }
+  .bg-lead { stroke-dashoffset: 0; }
   .bg-dot { opacity: 1; }
 }
 

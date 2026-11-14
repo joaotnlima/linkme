@@ -31,7 +31,7 @@ export function Card({ link, featured }: { link: Link; featured: boolean }) {
           {link.subtitle ? <span className="text-[13px] leading-[18px] text-muted truncate">{link.subtitle}</span> : null}
         </span>
       </a>
-      <CopyButton href={href} label={link.title} />
+      <CopyButton url={link.url} campaign={link.slug} label={link.title} />
     </div>
   );
 }

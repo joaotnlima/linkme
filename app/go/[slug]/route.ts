@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { resolveSlug, recordClick } from "@/lib/queries";
+import { withUtms } from "@/lib/slug";
 
 export const dynamic = "force-dynamic";
 
@@ -18,5 +19,6 @@ export async function GET(request: NextRequest, ctx: { params: Promise<{ slug: s
       console.error("click insert failed", slug, e);
     }
   }
-  return NextResponse.redirect(link.url, { status: 302 });
+  const source = request.nextUrl.hostname.replace(/^www\./, "");
+  return NextResponse.redirect(withUtms(link.url, source, slug), { status: 302 });
 }

@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { withUtms } from "@/lib/slug";
 
-export function CopyButton({ href, label }: { href: string; label: string }) {
+// Copies the real destination URL (not the /go tracking link) with UTM params so
+// the owner can see the click came from their page wherever the link is pasted.
+export function CopyButton({ url, campaign, label }: { url: string; campaign?: string; label: string }) {
   const [done, setDone] = useState(false);
   async function copy() {
     try {
-      const abs = new URL(href, window.location.origin).toString();
+      const abs = withUtms(url, window.location.hostname.replace(/^www\./, ""), campaign);
       await navigator.clipboard.writeText(abs);
       setDone(true);
       setTimeout(() => setDone(false), 1500);

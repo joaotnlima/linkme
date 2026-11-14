@@ -55,28 +55,32 @@ export async function recordClick(linkId: string) {
 
 export type Range = "7d" | "30d" | "90d";
 
-export async function getStats(range: Range) {
+export async function getStats(range: Range, day?: string | null) {
   const db = await getDb();
   const days = range === "7d" ? 7 : range === "30d" ? 30 : 90;
   const since = new Date(Date.now() - days * 86_400_000);
   const prevSince = new Date(since.getTime() - days * 86_400_000);
   const tz = "Europe/Lisbon";
-  const [totalRow] = await db.select({ n: count() }).from(clicks).where(gte(clicks.ts, since));
-  const [prevRow] = await db
-    .select({ n: count() })
-    .from(clicks)
-    .where(and(gte(clicks.ts, prevSince), lt(clicks.ts, since)));
+  // The chart series always spans the full range so any day can be picked.
   const perDay = await db
     .select({ day: sql<string>`to_char(${clicks.ts} at time zone ${tz}, 'YYYY-MM-DD')`, n: count() })
     .from(clicks)
     .where(gte(clicks.ts, since))
     .groupBy(sql`1`)
     .orderBy(sql`1`);
+  // Total + per-link honor the selected day when one is picked, else the range.
+  const scope = day
+    ? sql`to_char(${clicks.ts} at time zone ${tz}, 'YYYY-MM-DD') = ${day}`
+    : gte(clicks.ts, since);
+  const [totalRow] = await db.select({ n: count() }).from(clicks).where(scope);
+  const [prevRow] = day
+    ? [undefined]
+    : await db.select({ n: count() }).from(clicks).where(and(gte(clicks.ts, prevSince), lt(clicks.ts, since)));
   const perLink = await db
     .select({ linkId: clicks.linkId, title: linksTable.title, iconUrl: linksTable.iconUrl, iconEmoji: linksTable.iconEmoji, n: count() })
     .from(clicks)
     .innerJoin(linksTable, eq(linksTable.id, clicks.linkId))
-    .where(gte(clicks.ts, since))
+    .where(scope)
     .groupBy(clicks.linkId, linksTable.title, linksTable.iconUrl, linksTable.iconEmoji)
     .orderBy(desc(count()));
   // Zero-fill days in the owner's time zone.
@@ -88,5 +92,5 @@ export async function getStats(range: Range) {
     series.push({ day: d, n: byDay.get(d) ?? 0 });
   }
   const total = Number(totalRow?.n ?? 0);
-  return { days, total, prev: Number(prevRow?.n ?? 0), series, perLink: perLink.map((r) => ({ ...r, n: Number(r.n) })) };
+  return { days, day: day ?? null, total, prev: day ? null : Number(prevRow?.n ?? 0), series, perLink: perLink.map((r) => ({ ...r, n: Number(r.n) })) };
 }

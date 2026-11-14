@@ -29,7 +29,7 @@ function Paths() {
           <path className="bg-path" d="M30 830 C 150 810, 250 790, 340 800" />
           <path className="bg-path" d={lead} />
         </g>
-        <path className="bg-accent" pathLength={1} d={lead} stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" />
+        <path className="bg-lead" pathLength={1} d={lead} stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" />
         {[[180, 300, ""], [350, 560, "bg-q2"], [40, 180, "bg-q3"], [150, 500, "bg-q4"], [340, 800, "bg-q2"]].map(([x, y, cls]) => (
           <g key={`${x}-${y}`} className={`bg-q ${cls}`} stroke="var(--bg-stroke)" strokeWidth="1.5">
             <circle cx={Number(x)} cy={Number(y)} r="11" fill="var(--bg)" />

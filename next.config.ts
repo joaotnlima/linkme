@@ -5,9 +5,9 @@ const csp = [
   "default-src 'self'",
   // Inline scripts: the theme bootstrap in <head>; dev needs eval for HMR.
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
-  "style-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' https: data: blob:",
-  "font-src 'self' data:",
+  "font-src 'self' data: https://fonts.gstatic.com",
   "connect-src 'self' https://*.supabase.co" + (isDev ? " ws: http://localhost:*" : ""),
   "frame-ancestors 'none'",
   "base-uri 'self'",

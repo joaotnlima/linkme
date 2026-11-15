@@ -38,13 +38,20 @@ export function ProfileHeader({ settings, share, layout }: { settings: Settings;
     ) : (
       <div aria-hidden="true" className={`bg-accent text-white flex items-center justify-center font-bold ${shapeClass(settings.profileShape)} ${cls}`}>{initials(name)}</div>
     );
+  // Full-bleed media for hero/callout: the looping banner video if one is set, else the photo.
+  const media = (cls: string) =>
+    settings.bannerVideoUrl ? (
+      <video src={settings.bannerVideoUrl} autoPlay muted loop playsInline poster={settings.avatarUrl ?? undefined} className={`block object-cover bg-tile ${cls}`} />
+    ) : (
+      photo(cls)
+    );
   const fade = <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5" style={{ background: "linear-gradient(to top, var(--bg), transparent)" }} />;
 
   if (v === "hero") {
     return (
       <header className="flex flex-col">
         <div className="relative">
-          {photo("block w-full aspect-[3/4]")}
+          {media("block w-full aspect-[3/4]")}
           {fade}
           {share}
           <h1 className="cz-heading absolute inset-x-0 bottom-3 px-4 text-center text-[36px] md:text-[48px] font-extrabold tracking-tight leading-none">{name}</h1>

@@ -72,11 +72,14 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
   };
 
   const bannerUrl = f.bannerUrl ?? settings.bannerUrl;
+  const bannerVideo = settings.bannerVideoUrl;
   const headingStyle = { fontFamily: "var(--font-heading)" } as const;
   const photoBig = settings.avatarUrl
     ? <img src={settings.avatarUrl} alt="" className="w-full aspect-[4/5] object-cover rounded-2xl bg-tile" />
     : <div className="w-full aspect-[4/5] rounded-2xl bg-tile flex items-center justify-center"><span className="text-[11px] font-semibold uppercase tracking-wide text-muted">Your photo</span></div>;
-  const photoBleed = settings.avatarUrl
+  const photoBleed = bannerVideo
+    ? <video src={bannerVideo} autoPlay muted loop playsInline className="block w-full aspect-[3/4] object-cover bg-tile" />
+    : settings.avatarUrl
     ? <img src={settings.avatarUrl} alt="" className="block w-full aspect-[3/4] object-cover bg-tile" />
     : <div className="w-full aspect-[3/4] bg-tile flex items-center justify-center"><span className="text-[11px] font-semibold uppercase tracking-wide text-muted">Your photo</span></div>;
   const fadeEl = <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5" style={{ background: "linear-gradient(to top, var(--bg), transparent)" }} />;
@@ -119,7 +122,9 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
           <div className={`relative z-10 flex flex-col gap-3 px-4 pt-6 pb-8 ${editorial ? "text-left" : "items-center text-center"}`}>
             {layout === "banner" ? (
               <>
-                <div className="relative -mx-4 -mt-6 w-[calc(100%+2rem)] h-20 bg-accent" style={bannerUrl ? { backgroundImage: `url(${bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} />
+                {bannerVideo
+                  ? <video src={bannerVideo} autoPlay muted loop playsInline className="relative -mx-4 -mt-6 w-[calc(100%+2rem)] h-20 object-cover bg-accent" />
+                  : <div className="relative -mx-4 -mt-6 w-[calc(100%+2rem)] h-20 bg-accent" style={bannerUrl ? { backgroundImage: `url(${bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} />}
                 {avatarSm("-mt-8 border-4 relative z-10")}
                 <h1 className="text-lg font-bold leading-tight" style={headingStyle}>{name}</h1>
                 {texts}

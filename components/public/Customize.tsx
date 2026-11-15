@@ -22,6 +22,7 @@ export function customMainProps(s: Settings) {
       ["--font-body" as string]: fontStack(s.fontBody),
       ["--font-heading" as string]: fontStack(s.fontHeading),
       ...(hex(s.buttonBg, "") ? { ["--btn-bg" as string]: s.buttonBg } : {}),
+      ...(hex(s.featuredBg, "") ? { ["--feat-bg" as string]: s.featuredBg } : {}),
       ...(hex(s.buttonHoverColor, "") ? { ["--btn-hover-bg" as string]: s.buttonHoverColor, ["--btn-hover-border" as string]: s.buttonHoverColor } : {}),
       fontFamily: "var(--font-body)",
     } as CSSProperties,

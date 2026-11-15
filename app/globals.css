@@ -119,6 +119,8 @@ body {
 [data-btn="outline"] .cz-surface:not(.cz-featured) { background: transparent !important; }
 /* Custom button background (solid style only; glass/outline keep their look). */
 [data-btn="solid"] .cz-surface:not(.cz-featured) { background: var(--btn-bg, var(--card)) !important; }
+/* Featured card background (defaults to the accent tint). */
+.cz-surface.cz-featured { background: var(--feat-bg, var(--accent-soft)) !important; }
 /* Border thickness */
 .cz-surface { transition: background .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease; }
 [data-btnbd="none"] .cz-surface:not(.cz-featured) { border-width: 0; }
@@ -131,7 +133,7 @@ body {
   [data-btnhv="none"] .cz-surface:hover { transform: none; }
   [data-btnhv="grow"] .cz-surface:hover { transform: scale(1.025); }
   [data-btnhv="lift"] .cz-surface:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,.13); }
-  [data-btnhv="color"] .cz-surface:not(.cz-featured):hover { background: var(--btn-hover-bg, var(--accent-soft)) !important; border-color: var(--btn-hover-border, var(--accent)); }
+  [data-btnhv="color"] .cz-surface:hover { background: var(--btn-hover-bg, var(--accent-soft)) !important; border-color: var(--btn-hover-border, var(--accent)); }
 }
 
 /* Live-preview cards: scoped hover so the owner can preview the hover effect. */

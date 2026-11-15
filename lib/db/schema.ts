@@ -34,6 +34,7 @@ export const settings = links.table("settings", {
   buttonStyle: text("button_style").notNull().default("solid"), // solid | glass | outline
   buttonRadius: text("button_radius").notNull().default("rounded"), // sharp | rounded | pill
   buttonBg: text("button_bg"), // hex override for (non-featured) button background; null = theme card
+  featuredBg: text("featured_bg"), // hex override for featured card background; null = accent-soft
   buttonBorder: text("button_border").notNull().default("thin"), // none | thin | thick
   buttonShadow: text("button_shadow").notNull().default("none"), // none | soft | hard
   buttonHover: text("button_hover").notNull().default("lift"), // none | grow | lift | color

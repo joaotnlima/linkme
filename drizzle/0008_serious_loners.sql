@@ -1,0 +1,1 @@
+ALTER TABLE "links"."settings" ADD COLUMN "featured_bg" text;

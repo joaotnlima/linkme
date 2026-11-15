@@ -47,6 +47,7 @@ export const settingsInput = z.object({
   buttonStyle: z.enum(["solid", "glass", "outline"]).default("solid"),
   buttonRadius: z.enum(["sharp", "rounded", "pill"]).default("rounded"),
   buttonBg: z.string().trim().regex(/^(#[0-9a-fA-F]{6})?$/, "Use a hex colour or leave empty").default(""),
+  featuredBg: z.string().trim().regex(/^(#[0-9a-fA-F]{6})?$/, "Use a hex colour or leave empty").default(""),
   buttonBorder: z.enum(["none", "thin", "thick"]).default("thin"),
   buttonShadow: z.enum(["none", "soft", "hard"]).default("none"),
   buttonHover: z.enum(["none", "grow", "lift", "color"]).default("lift"),

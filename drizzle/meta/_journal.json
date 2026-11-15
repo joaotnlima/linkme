@@ -57,6 +57,13 @@
       "when": 1794701930636,
       "tag": "0007_sad_multiple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794702518233,
+      "tag": "0008_serious_loners",
+      "breakpoints": true
     }
   ]
 }

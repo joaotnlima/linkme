@@ -38,17 +38,17 @@ function Color({ name, label, initial, fallback }: { name: string; label: string
 
 const Label = ({ children }: { children: React.ReactNode }) => <span className="text-sm font-semibold text-ink">{children}</span>;
 
-// Optional button background: a hidden input carries the hex when "Custom" is on, "" otherwise.
-function ButtonBgField({ initial }: { initial: string | null }) {
+// Optional colour: a hidden input carries the hex when "Custom" is on, "" otherwise (= theme default).
+function ColorOrDefault({ name, label, initial, fallback }: { name: string; label: string; initial: string | null; fallback: string }) {
   const valid = initial && /^#[0-9a-fA-F]{6}$/.test(initial);
   const [on, setOn] = useState(!!valid);
-  const [v, setV] = useState(valid ? (initial as string) : "#16161a");
+  const [v, setV] = useState(valid ? (initial as string) : fallback);
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => { ref.current?.dispatchEvent(new Event("input", { bubbles: true })); }, [on, v]);
   return (
     <div className="flex flex-col gap-1.5">
-      <Label>Button background</Label>
-      <input ref={ref} type="hidden" name="buttonBg" value={on ? v : ""} />
+      <Label>{label}</Label>
+      <input ref={ref} type="hidden" name={name} value={on ? v : ""} />
       <div className="flex items-center gap-2">
         <button type="button" onClick={() => setOn((o) => !o)} aria-pressed={on} className={`h-9 px-3 rounded-lg text-[13px] font-semibold border cursor-pointer ${on ? "bg-ink text-bg border-ink" : "border-line text-muted"}`}>{on ? "Custom" : "Theme default"}</button>
         {on ? <input type="color" value={v} onChange={(e) => setV(e.target.value)} className="w-11 h-9 rounded-lg border border-line bg-card cursor-pointer p-1" aria-label="Button background colour" /> : null}
@@ -146,7 +146,10 @@ export function DesignControls({ settings }: { settings: Settings }) {
         <Segmented name="buttonRadius" value={radius} onChange={setRadius} options={[{ v: "sharp", label: "Sharp" }, { v: "rounded", label: "Rounded" }, { v: "pill", label: "Pill" }]} />
       </div>
 
-      <ButtonBgField initial={settings.buttonBg} />
+      <div className="grid grid-cols-2 gap-3">
+        <ColorOrDefault name="buttonBg" label="Card background" initial={settings.buttonBg} fallback="#16161a" />
+        <ColorOrDefault name="featuredBg" label="Featured background" initial={settings.featuredBg} fallback="#0e7c66" />
+      </div>
       <div className="flex flex-col gap-1.5">
         <Label>Button border</Label>
         <Segmented name="buttonBorder" value={btnBorder} onChange={setBtnBorder} options={[{ v: "none", label: "None" }, { v: "thin", label: "Thin" }, { v: "thick", label: "Thick" }]} />

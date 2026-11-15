@@ -220,6 +220,7 @@ export async function updateSettings(_prev: ActionResult | null, fd: FormData): 
       buttonStyle: str(fd, "buttonStyle") || "solid",
       buttonRadius: str(fd, "buttonRadius") || "rounded",
       buttonBg: str(fd, "buttonBg"),
+      featuredBg: str(fd, "featuredBg"),
       buttonBorder: str(fd, "buttonBorder") || "thin",
       buttonShadow: str(fd, "buttonShadow") || "none",
       buttonHover: str(fd, "buttonHover") || "lift",
@@ -240,6 +241,7 @@ export async function updateSettings(_prev: ActionResult | null, fd: FormData): 
     await db.update(settings).set({
       ...input,
       buttonBg: input.buttonBg || null,
+      featuredBg: input.featuredBg || null,
       buttonHoverColor: input.buttonHoverColor || null,
       leadLinkId: input.leadLinkId || null,
       wallpaperColor: input.wallpaperColor || null,

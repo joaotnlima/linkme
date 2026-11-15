@@ -32,7 +32,7 @@ export function embedFor(url: string): Embed | null {
       const id = (parts[ti + 1] ?? "").replace(/[^a-zA-Z0-9]/g, "");
       if (id) {
         const tall = type === "playlist" || type === "album" || type === "show" || type === "artist";
-        return { provider: "spotify", src: `https://open.spotify.com/embed/${type}/${id}`, title: "Spotify player", height: tall ? 352 : 152 };
+        return { provider: "spotify", src: `https://open.spotify.com/embed/${type}/${id}`, title: "Spotify player", height: tall ? 380 : 152 };
       }
     }
   }

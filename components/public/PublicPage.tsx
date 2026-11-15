@@ -71,13 +71,19 @@ function FeedItem({ post }: { post: Post }) {
   if (em?.provider === "youtube") {
     const src = post.autoplay ? `${em.src}?autoplay=1&mute=1&playsinline=1` : em.src;
     return (
-      <div className="rounded-2xl overflow-hidden border border-line bg-black">
+      <div className="-mx-4 sm:mx-0 overflow-hidden sm:rounded-2xl border-y sm:border border-line bg-black">
         <iframe src={src} title={post.title || em.title} loading="lazy" allow="autoplay; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen className="block w-full aspect-video" />
       </div>
     );
   }
   if (em?.provider === "spotify") {
-    return <iframe src={em.src} title={post.title || em.title} loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" className="block w-full rounded-2xl border-0" style={{ height: em.height }} />;
+    // Full-bleed on mobile: Spotify collapses to its compact "preview" player when the
+    // iframe is too narrow, so give it the full screen width on small devices.
+    return (
+      <div className="-mx-4 sm:mx-0">
+        <iframe src={em.src} title={post.title || em.title} loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" className="block w-full sm:rounded-2xl border-0" style={{ height: em.height }} />
+      </div>
+    );
   }
   return <PostCard post={post} />;
 }

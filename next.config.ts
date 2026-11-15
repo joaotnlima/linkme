@@ -33,6 +33,8 @@ const nextConfig: NextConfig = {
   },
   // Previous caching model: ISR via `export const revalidate` + revalidatePath on writes.
   cacheComponents: false,
+  // Server Actions default to a 1 MB request body — too small for banner video uploads.
+  experimental: { serverActions: { bodySizeLimit: "20mb" } },
   serverExternalPackages: ["@electric-sql/pglite", "postgres"],
   images: { remotePatterns: [{ protocol: "https", hostname: "**" }] },
   turbopack: {

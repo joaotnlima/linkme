@@ -155,7 +155,7 @@ export function LookAdmin({ settings, feeds, links, posts, hasInstagram }: Props
                       <select id="source" name="source" defaultValue={f?.source ?? "manual"} className={inputCls}><option value="manual">Paste URLs (any site)</option><option value="instagram_graph">Instagram sync</option></select>
                     </Field>
                     <Field label="Style" name="style">
-                      <select id="style" name="style" defaultValue={f?.style ?? "cards"} className={inputCls}><option value="cards">Cards (title · date)</option><option value="grid">Image grid (3 columns)</option></select>
+                      <select id="style" name="style" defaultValue={f?.style ?? "cards"} className={inputCls}><option value="cards">List (title · date)</option><option value="grid">Image grid (3 columns)</option><option value="carousel">Carousel (swipe sideways)</option><option value="showcase">Showcase (first item featured)</option></select>
                     </Field>
                   </div>
                   <Toggle name="enabled" defaultChecked={f?.enabled ?? true} label="Show on the page" />

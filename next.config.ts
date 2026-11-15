@@ -9,6 +9,8 @@ const csp = [
   "img-src 'self' https: data: blob:",
   "font-src 'self' data: https://fonts.gstatic.com",
   "connect-src 'self' https://*.supabase.co" + (isDev ? " ws: http://localhost:*" : ""),
+  // Media embeds (YouTube / Spotify players in feeds).
+  "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://open.spotify.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self' https://*.supabase.co https://github.com",

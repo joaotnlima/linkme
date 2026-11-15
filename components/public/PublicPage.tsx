@@ -7,6 +7,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { CopyButton } from "./CopyButton";
 import { LinkIcon } from "./Icon";
 import { hostOf } from "@/lib/slug";
+import { embedFor } from "@/lib/embed";
 import { ShareCard } from "./ShareCard";
 import { MadeBy } from "./MadeBy";
 
@@ -64,6 +65,66 @@ function PostGrid({ posts }: { posts: Post[] }) {
   );
 }
 
+/** A single feed entry: a playable YouTube/Spotify embed when the URL supports it, else a post card. */
+function FeedItem({ post }: { post: Post }) {
+  const em = embedFor(post.url);
+  if (em?.provider === "youtube") {
+    return (
+      <div className="rounded-2xl overflow-hidden border border-line bg-black">
+        <iframe src={em.src} title={post.title || em.title} loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen className="block w-full aspect-video" />
+      </div>
+    );
+  }
+  if (em?.provider === "spotify") {
+    return <iframe src={em.src} title={post.title || em.title} loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" className="block w-full rounded-2xl border-0" style={{ height: em.height }} />;
+  }
+  return <PostCard post={post} />;
+}
+
+/** Big hero card for the first item of a "showcase" feed (used when it is not an embed). */
+function BigPostCard({ post }: { post: Post }) {
+  return (
+    <a href={post.url} target="_blank" rel="noopener noreferrer" className="card-hover block rounded-2xl border border-line bg-card overflow-hidden">
+      <div className="aspect-[16/10] bg-tile overflow-hidden flex items-center justify-center text-muted">
+        {post.imageUrl ? <img src={post.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" /> : <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 15l5-5 4 4 3-3 6 6" /></svg>}
+      </div>
+      <div className="flex items-center justify-between gap-2 px-3.5 py-3">
+        <span className="text-[15px] font-semibold line-clamp-1">{post.title || post.excerpt || hostOf(post.url)}</span>
+      </div>
+    </a>
+  );
+}
+
+/** Renders a feed in its chosen layout: list, grid, carousel or showcase. */
+function FeedBlock({ feed, items }: { feed: Feed; items: Post[] }) {
+  let body: React.ReactNode;
+  if (feed.style === "grid") {
+    body = <PostGrid posts={items} />;
+  } else if (feed.style === "carousel") {
+    body = (
+      <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {items.map((p) => <div key={p.id} className="snap-start shrink-0 w-[78%]"><FeedItem post={p} /></div>)}
+      </div>
+    );
+  } else if (feed.style === "showcase") {
+    const [first, ...rest] = items;
+    body = (
+      <div className="flex flex-col gap-2.5">
+        {embedFor(first.url) ? <FeedItem post={first} /> : <BigPostCard post={first} />}
+        {rest.map((p) => <FeedItem key={p.id} post={p} />)}
+      </div>
+    );
+  } else {
+    body = <div className="flex flex-col gap-2.5">{items.map((p) => <FeedItem key={p.id} post={p} />)}</div>;
+  }
+  return (
+    <div className="flex flex-col gap-2.5">
+      <SectionLabel>{feed.title}</SectionLabel>
+      {body}
+    </div>
+  );
+}
+
 /** Links grouped by section label (in position order), then feeds. Shared by both layouts. */
 export function PublicBody({ feeds, links, posts, excludeLinkId }: Pick<PageData, "feeds" | "links" | "posts"> & { excludeLinkId?: string | null }) {
   const cards = links.filter((l) => l.display !== "icon" && l.id !== excludeLinkId);
@@ -84,12 +145,7 @@ export function PublicBody({ feeds, links, posts, excludeLinkId }: Pick<PageData
       {feeds.map((f) => {
         const items = posts.filter((p) => p.feedId === f.id && p.enabled);
         if (!items.length) return null;
-        return (
-          <div key={f.id} className="flex flex-col gap-2.5">
-            <SectionLabel>{f.title}</SectionLabel>
-            {f.style === "grid" ? <PostGrid posts={items} /> : items.map((p) => <PostCard key={p.id} post={p} />)}
-          </div>
-        );
+        return <FeedBlock key={f.id} feed={f} items={items} />;
       })}
       {!cards.length && !feeds.length ? <p className="text-center text-muted text-sm">Nothing here yet. Add links in /admin.</p> : null}
     </>

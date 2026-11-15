@@ -68,7 +68,7 @@ export const settingsInput = z.object({
 export const feedInput = z.object({
   title: z.string().trim().min(1).max(60),
   source: z.enum(["manual", "instagram_graph"]),
-  style: z.enum(["cards", "grid"]),
+  style: z.enum(["cards", "grid", "carousel", "showcase"]),
   enabled: z.boolean().default(true),
 });
 

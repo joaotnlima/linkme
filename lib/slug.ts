@@ -8,11 +8,13 @@ export function slugify(input: string): string {
     .slice(0, 48) || "link";
 }
 
-export function platformOf(url: string): "linkedin" | "instagram" | "other" {
+export function platformOf(url: string): "linkedin" | "instagram" | "youtube" | "spotify" | "other" {
   try {
     const h = new URL(url).hostname.replace(/^www\./, "");
     if (h.endsWith("linkedin.com")) return "linkedin";
     if (h.endsWith("instagram.com")) return "instagram";
+    if (h === "youtu.be" || h.endsWith("youtube.com")) return "youtube";
+    if (h.endsWith("spotify.com")) return "spotify";
   } catch {}
   return "other";
 }

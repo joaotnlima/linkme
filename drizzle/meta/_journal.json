@@ -64,6 +64,13 @@
       "when": 1794702518233,
       "tag": "0008_serious_loners",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794702662784,
+      "tag": "0009_public_husk",
+      "breakpoints": true
     }
   ]
 }

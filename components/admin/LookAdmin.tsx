@@ -183,6 +183,7 @@ export function LookAdmin({ settings, feeds, links, posts, hasInstagram }: Props
                 </div>
                 <p className="text-xs text-muted">LinkedIn hides post previews from non-browsers; a screenshot of the post works well as the image.</p>
                 <Toggle name="enabled" defaultChecked={postEditing.enabled} label="Show in feed" />
+                {postEditing.platform === "youtube" ? <Toggle name="autoplay" defaultChecked={postEditing.autoplay} label="Autoplay (muted) when the page loads" /> : null}
                 <div className="flex gap-2">
                   <button type="submit" disabled={pending} className="flex-1 h-12 rounded-2xl bg-accent text-white font-semibold disabled:opacity-60 cursor-pointer">{pending ? "Saving…" : "Save"}</button>
                   <ActionButton run={() => refetchPost(postEditing.id).then((r) => { if (r.ok) setPostEditing(null); return r; })} className="h-12 px-4 rounded-2xl border border-line font-semibold">Re-fetch preview</ActionButton>

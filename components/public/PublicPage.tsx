@@ -69,9 +69,10 @@ function PostGrid({ posts }: { posts: Post[] }) {
 function FeedItem({ post }: { post: Post }) {
   const em = embedFor(post.url);
   if (em?.provider === "youtube") {
+    const src = post.autoplay ? `${em.src}?autoplay=1&mute=1&playsinline=1` : em.src;
     return (
       <div className="rounded-2xl overflow-hidden border border-line bg-black">
-        <iframe src={em.src} title={post.title || em.title} loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen className="block w-full aspect-video" />
+        <iframe src={src} title={post.title || em.title} loading="lazy" allow="autoplay; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen className="block w-full aspect-video" />
       </div>
     );
   }

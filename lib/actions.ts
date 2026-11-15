@@ -420,6 +420,7 @@ export async function updatePost(_prev: ActionResult | null, fd: FormData): Prom
         excerpt: str(fd, "excerpt").slice(0, 400) || null,
         imageUrl,
         enabled: checked(fd, "enabled"),
+        autoplay: checked(fd, "autoplay"),
       })
       .where(eq(posts.id, id));
     publish();

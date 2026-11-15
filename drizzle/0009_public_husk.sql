@@ -1,0 +1,1 @@
+ALTER TABLE "links"."post" ADD COLUMN "autoplay" boolean DEFAULT false NOT NULL;

@@ -99,6 +99,7 @@ export const posts = links.table(
     source: text("source").notNull().default("manual"), // manual | og | instagram_graph
     externalId: text("external_id"),
     enabled: boolean("enabled").notNull().default(true),
+    autoplay: boolean("autoplay").notNull().default(false), // YouTube: autoplay muted on load
     position: integer("position").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

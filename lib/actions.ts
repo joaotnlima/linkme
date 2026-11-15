@@ -219,6 +219,11 @@ export async function updateSettings(_prev: ActionResult | null, fd: FormData): 
       accentDark: str(fd, "accentDark") || "#3ccba8",
       buttonStyle: str(fd, "buttonStyle") || "solid",
       buttonRadius: str(fd, "buttonRadius") || "rounded",
+      buttonBg: str(fd, "buttonBg"),
+      buttonBorder: str(fd, "buttonBorder") || "thin",
+      buttonShadow: str(fd, "buttonShadow") || "none",
+      buttonHover: str(fd, "buttonHover") || "lift",
+      buttonHoverColor: str(fd, "buttonHoverColor"),
       wallpaper: str(fd, "wallpaper") || "animated",
       wallpaperColor: str(fd, "wallpaperColor"),
       wallpaperColor2: str(fd, "wallpaperColor2"),
@@ -234,6 +239,8 @@ export async function updateSettings(_prev: ActionResult | null, fd: FormData): 
     const db = await getDb();
     await db.update(settings).set({
       ...input,
+      buttonBg: input.buttonBg || null,
+      buttonHoverColor: input.buttonHoverColor || null,
       leadLinkId: input.leadLinkId || null,
       wallpaperColor: input.wallpaperColor || null,
       wallpaperColor2: input.wallpaperColor2 || null,

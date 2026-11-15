@@ -48,12 +48,23 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
   const bs = f.buttonStyle ?? settings.buttonStyle;
   const br = f.buttonRadius ?? settings.buttonRadius;
   const radiusPx = br === "pill" ? 9999 : br === "sharp" ? 8 : 16;
+  const bbg = f.buttonBg ?? settings.buttonBg ?? "";
+  const bbd = f.buttonBorder ?? settings.buttonBorder;
+  const bsh = f.buttonShadow ?? settings.buttonShadow;
+  const bhv = f.buttonHover ?? settings.buttonHover;
+  const bhc = f.buttonHoverColor ?? settings.buttonHoverColor ?? "";
+  const hoverVars = /^#[0-9a-fA-F]{6}$/.test(bhc) ? { ["--btn-hover-bg" as string]: bhc, ["--btn-hover-border" as string]: bhc } : {};
   const cardStyle = (featured: boolean) => {
     const s: Record<string, string | number> = { borderRadius: radiusPx };
     if (!featured) {
       if (bs === "glass") { s.background = "color-mix(in srgb, var(--card) 50%, transparent)"; s.backdropFilter = "blur(10px)"; s.WebkitBackdropFilter = "blur(10px)"; }
       else if (bs === "outline") { s.background = "transparent"; }
+      else if (/^#[0-9a-fA-F]{6}$/.test(bbg)) { s.background = bbg; }
+      if (bbd === "none") s.borderWidth = 0;
     }
+    if (bbd === "thick") s.borderWidth = 2.5;
+    if (bsh === "soft") s.boxShadow = "0 2px 10px rgba(0,0,0,.09)";
+    else if (bsh === "hard") s.boxShadow = "4px 4px 0 var(--ink)";
     return s;
   };
 
@@ -88,8 +99,10 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
           className="relative w-full h-full overflow-y-auto"
           data-btn={f.buttonStyle ?? settings.buttonStyle}
           data-btnr={f.buttonRadius ?? settings.buttonRadius}
+          data-btnhv={bhv}
           style={{
             ...(dark ? DARK : LIGHT),
+            ...hoverVars,
             ["--accent" as string]: accent,
             ["--accent-soft" as string]: `color-mix(in srgb, ${accent} ${dark ? 22 : 14}%, ${dark ? "#1c1c20" : "#ffffff"})`,
             ["--font-body" as string]: fontStack(f.fontBody ?? settings.fontBody),
@@ -151,7 +164,7 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
             ) : null}
             <div className="w-full flex flex-col gap-2.5 pt-2">
               {cards.map((l, i) => (
-                <div key={l.id} style={cardStyle(i === 0)} className={`flex items-center gap-2.5 border px-2.5 py-2 ${i === 0 ? "bg-accent-soft border-accent" : "bg-card border-line"}`}>
+                <div key={l.id} style={cardStyle(i === 0)} className={`pv-card flex items-center gap-2.5 border px-2.5 py-2 ${i === 0 ? "bg-accent-soft border-accent" : "bg-card border-line"}`}>
                   <LinkIcon title={l.title} iconUrl={l.iconUrl} iconEmoji={l.iconEmoji} url={l.url} size={30} />
                   <span className="text-[13px] font-semibold truncate">{l.title}</span>
                 </div>

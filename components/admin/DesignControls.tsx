@@ -38,6 +38,26 @@ function Color({ name, label, initial, fallback }: { name: string; label: string
 
 const Label = ({ children }: { children: React.ReactNode }) => <span className="text-sm font-semibold text-ink">{children}</span>;
 
+// Optional button background: a hidden input carries the hex when "Custom" is on, "" otherwise.
+function ButtonBgField({ initial }: { initial: string | null }) {
+  const valid = initial && /^#[0-9a-fA-F]{6}$/.test(initial);
+  const [on, setOn] = useState(!!valid);
+  const [v, setV] = useState(valid ? (initial as string) : "#16161a");
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => { ref.current?.dispatchEvent(new Event("input", { bubbles: true })); }, [on, v]);
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label>Button background</Label>
+      <input ref={ref} type="hidden" name="buttonBg" value={on ? v : ""} />
+      <div className="flex items-center gap-2">
+        <button type="button" onClick={() => setOn((o) => !o)} aria-pressed={on} className={`h-9 px-3 rounded-lg text-[13px] font-semibold border cursor-pointer ${on ? "bg-ink text-bg border-ink" : "border-line text-muted"}`}>{on ? "Custom" : "Theme default"}</button>
+        {on ? <input type="color" value={v} onChange={(e) => setV(e.target.value)} className="w-11 h-9 rounded-lg border border-line bg-card cursor-pointer p-1" aria-label="Button background colour" /> : null}
+        {on ? <span className="text-[13px] font-mono text-muted">{v}</span> : null}
+      </div>
+    </div>
+  );
+}
+
 // Font dropdown: Default, Mono, the popular Google fonts, plus any custom value already set.
 function FontSelect({ name, value, onChange }: { name: string; value: string; onChange: (v: string) => void }) {
   const known = ["", "mono", ...POPULAR_FONTS];
@@ -51,6 +71,24 @@ function FontSelect({ name, value, onChange }: { name: string; value: string; on
   );
 }
 
+// Shown only when hover = "color". The hidden input carries the hex while active, "" otherwise.
+function HoverColorField({ initial, show }: { initial: string | null; show: boolean }) {
+  const valid = initial && /^#[0-9a-fA-F]{6}$/.test(initial);
+  const [v, setV] = useState(valid ? (initial as string) : "#0e7c66");
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => { ref.current?.dispatchEvent(new Event("input", { bubbles: true })); }, [v, show]);
+  return (
+    <div className={`flex-col gap-1.5 ${show ? "flex" : "hidden"}`}>
+      <Label>Hover colour</Label>
+      <input ref={ref} type="hidden" name="buttonHoverColor" value={show ? v : ""} />
+      <span className="flex items-center gap-2">
+        <input type="color" value={v} onChange={(e) => setV(e.target.value)} className="w-11 h-11 rounded-xl border border-line bg-card cursor-pointer p-1" aria-label="Hover colour" />
+        <span className="text-[13px] font-mono text-muted">{v}</span>
+      </span>
+    </div>
+  );
+}
+
 export function DesignControls({ settings }: { settings: Settings }) {
   const [style, setStyle] = useState(settings.buttonStyle as "solid" | "glass" | "outline");
   const [radius, setRadius] = useState(settings.buttonRadius as "sharp" | "rounded" | "pill");
@@ -59,6 +97,9 @@ export function DesignControls({ settings }: { settings: Settings }) {
   const [hMobile, setHMobile] = useState(settings.layoutMobile);
   const [fontBody, setFontBody] = useState(settings.fontBody);
   const [fontHeading, setFontHeading] = useState(settings.fontHeading);
+  const [btnBorder, setBtnBorder] = useState(settings.buttonBorder as "none" | "thin" | "thick");
+  const [btnShadow, setBtnShadow] = useState(settings.buttonShadow as "none" | "soft" | "hard");
+  const [btnHover, setBtnHover] = useState(settings.buttonHover as "none" | "grow" | "lift" | "color");
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-line bg-card p-4">
@@ -104,6 +145,23 @@ export function DesignControls({ settings }: { settings: Settings }) {
         <Label>Button roundness</Label>
         <Segmented name="buttonRadius" value={radius} onChange={setRadius} options={[{ v: "sharp", label: "Sharp" }, { v: "rounded", label: "Rounded" }, { v: "pill", label: "Pill" }]} />
       </div>
+
+      <ButtonBgField initial={settings.buttonBg} />
+      <div className="flex flex-col gap-1.5">
+        <Label>Button border</Label>
+        <Segmented name="buttonBorder" value={btnBorder} onChange={setBtnBorder} options={[{ v: "none", label: "None" }, { v: "thin", label: "Thin" }, { v: "thick", label: "Thick" }]} />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-1.5">
+          <Label>Shadow</Label>
+          <Segmented name="buttonShadow" value={btnShadow} onChange={setBtnShadow} options={[{ v: "none", label: "None" }, { v: "soft", label: "Soft" }, { v: "hard", label: "Hard" }]} />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label>Hover</Label>
+          <Segmented name="buttonHover" value={btnHover} onChange={setBtnHover} options={[{ v: "none", label: "None" }, { v: "grow", label: "Grow" }, { v: "lift", label: "Lift" }, { v: "color", label: "Colour" }]} />
+        </div>
+      </div>
+      <HoverColorField initial={settings.buttonHoverColor} show={btnHover === "color"} />
 
       <div className="grid grid-cols-2 gap-3">
         <label className="flex flex-col gap-1.5"><Label>Body font</Label><FontSelect name="fontBody" value={fontBody} onChange={setFontBody} /></label>

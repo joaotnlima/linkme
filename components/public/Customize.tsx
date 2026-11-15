@@ -15,9 +15,14 @@ export function customMainProps(s: Settings) {
   return {
     "data-btn": s.buttonStyle,
     "data-btnr": s.buttonRadius,
+    "data-btnbd": s.buttonBorder,
+    "data-btnsh": s.buttonShadow,
+    "data-btnhv": s.buttonHover,
     style: {
       ["--font-body" as string]: fontStack(s.fontBody),
       ["--font-heading" as string]: fontStack(s.fontHeading),
+      ...(hex(s.buttonBg, "") ? { ["--btn-bg" as string]: s.buttonBg } : {}),
+      ...(hex(s.buttonHoverColor, "") ? { ["--btn-hover-bg" as string]: s.buttonHoverColor, ["--btn-hover-border" as string]: s.buttonHoverColor } : {}),
       fontFamily: "var(--font-body)",
     } as CSSProperties,
   };

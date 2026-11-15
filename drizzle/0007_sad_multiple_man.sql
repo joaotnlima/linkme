@@ -1,0 +1,1 @@
+ALTER TABLE "links"."settings" ADD COLUMN "button_hover_color" text;

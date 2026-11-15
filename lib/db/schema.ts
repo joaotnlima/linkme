@@ -33,6 +33,11 @@ export const settings = links.table("settings", {
   accentDark: text("accent_dark").notNull().default("#3ccba8"),
   buttonStyle: text("button_style").notNull().default("solid"), // solid | glass | outline
   buttonRadius: text("button_radius").notNull().default("rounded"), // sharp | rounded | pill
+  buttonBg: text("button_bg"), // hex override for (non-featured) button background; null = theme card
+  buttonBorder: text("button_border").notNull().default("thin"), // none | thin | thick
+  buttonShadow: text("button_shadow").notNull().default("none"), // none | soft | hard
+  buttonHover: text("button_hover").notNull().default("lift"), // none | grow | lift | color
+  buttonHoverColor: text("button_hover_color"), // hex used when buttonHover = color; null = accent
   wallpaper: text("wallpaper").notNull().default("animated"), // animated | solid | gradient | image | video
   wallpaperColor: text("wallpaper_color"), // solid fill / gradient stop 1
   wallpaperColor2: text("wallpaper_color2"), // gradient stop 2

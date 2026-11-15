@@ -320,11 +320,13 @@ export async function setBanner(_prev: ActionResult | null, fd: FormData): Promi
     }
     const url = str(fd, "url");
     if (url) {
-      await db.update(settings).set({ bannerUrl: url }).where(eq(settings.id, 1));
+      // Route by extension: a video URL goes to bannerVideoUrl, else the image.
+      const isVideo = /\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(url);
+      await db.update(settings).set(isVideo ? { bannerVideoUrl: url } : { bannerUrl: url }).where(eq(settings.id, 1));
       publish();
       return { ok: true };
     }
-    return { ok: false, error: "Paste a URL or choose an image." };
+    return { ok: false, error: "Paste a URL or choose a file." };
   } catch (e) {
     return fieldErrors(e);
   }

@@ -11,7 +11,7 @@ export function BannerImage({ url, videoUrl }: { url: string | null; videoUrl?: 
         <>
           <span className="text-sm font-semibold text-ink">Banner <span className="font-normal text-muted">· for the Banner header</span></span>
           {videoUrl ? <video src={videoUrl} autoPlay muted loop playsInline className="w-full h-24 rounded-xl object-cover bg-tile" /> : url ? <div className="w-full h-24 rounded-xl bg-tile bg-cover bg-center" style={{ backgroundImage: `url(${url})` }} /> : null}
-          <input name="url" type="url" defaultValue={url ?? ""} placeholder="Paste an image URL…" className={inputCls} />
+          <input name="url" type="url" defaultValue={videoUrl ?? url ?? ""} placeholder="Paste an image or video (.mp4/.webm/.mov) URL…" className={inputCls} />
           <div className="flex gap-2 flex-wrap items-center">
             <button type="submit" disabled={pending} className="h-9 px-3 rounded-xl bg-ink text-bg text-[13px] font-semibold disabled:opacity-60 cursor-pointer">{pending ? "Saving…" : "Use URL"}</button>
             <label className="h-9 px-3 rounded-xl border border-line text-[13px] font-semibold flex items-center cursor-pointer">

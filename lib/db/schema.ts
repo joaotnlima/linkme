@@ -46,6 +46,7 @@ export const settings = links.table("settings", {
   wallpaperVideoUrl: text("wallpaper_video_url"),
   profileShape: text("profile_shape").notNull().default("circle"), // circle | rounded | squircle | burst
   bannerUrl: text("banner_url"),
+  bannerVideoUrl: text("banner_video_url"), // looping muted video for the Banner header (overrides image)
   logoUrl: text("logo_url"),
   fontBody: text("font_body").notNull().default("default"),
   fontHeading: text("font_heading").notNull().default("default"),

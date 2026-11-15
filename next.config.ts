@@ -7,6 +7,7 @@ const csp = [
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' https: data: blob:",
+  "media-src 'self' https: data: blob:",
   "font-src 'self' data: https://fonts.gstatic.com",
   "connect-src 'self' https://*.supabase.co" + (isDev ? " ws: http://localhost:*" : ""),
   // Media embeds (YouTube / Spotify players in feeds).

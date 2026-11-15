@@ -52,7 +52,7 @@ export function LookAdmin({ settings, feeds, links, posts, hasInstagram }: Props
         </div>
       </div>
       ) : null}
-      {tab === "design" ? <BannerImage url={settings.bannerUrl} /> : null}
+      {tab === "design" ? <BannerImage url={settings.bannerUrl} videoUrl={settings.bannerVideoUrl} /> : null}
 
       <ActionForm id="look-form" action={updateSettings} className="flex flex-col gap-3.5">
         {(state, pending) => {

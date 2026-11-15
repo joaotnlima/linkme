@@ -8,6 +8,7 @@ import { CopyButton } from "./CopyButton";
 import { LinkIcon } from "./Icon";
 import { hostOf } from "@/lib/slug";
 import { embedFor } from "@/lib/embed";
+import { Carousel } from "./Carousel";
 import { ShareCard } from "./ShareCard";
 import { MadeBy } from "./MadeBy";
 
@@ -66,12 +67,13 @@ function PostGrid({ posts }: { posts: Post[] }) {
 }
 
 /** A single feed entry: a playable YouTube/Spotify embed when the URL supports it, else a post card. */
-function FeedItem({ post }: { post: Post }) {
+function FeedItem({ post, bleed = true }: { post: Post; bleed?: boolean }) {
   const em = embedFor(post.url);
+  const bleedCls = bleed ? "-mx-4 sm:mx-0" : "";
   if (em?.provider === "youtube") {
     const src = post.autoplay ? `${em.src}?autoplay=1&mute=1&playsinline=1` : em.src;
     return (
-      <div className="-mx-4 sm:mx-0 overflow-hidden sm:rounded-2xl border-y sm:border border-line bg-black">
+      <div className={`${bleedCls} overflow-hidden sm:rounded-2xl border-y sm:border border-line bg-black`}>
         <iframe src={src} title={post.title || em.title} loading="lazy" allow="autoplay; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen className="block w-full aspect-video" />
       </div>
     );
@@ -80,7 +82,7 @@ function FeedItem({ post }: { post: Post }) {
     // Full-bleed on mobile: Spotify collapses to its compact "preview" player when the
     // iframe is too narrow, so give it the full screen width on small devices.
     return (
-      <div className="-mx-4 sm:mx-0">
+      <div className={bleedCls}>
         <iframe src={em.src} title={post.title || em.title} loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" className="block w-full sm:rounded-2xl border-0" style={{ height: em.height }} />
       </div>
     );
@@ -108,11 +110,7 @@ function FeedBlock({ feed, items }: { feed: Feed; items: Post[] }) {
   if (feed.style === "grid") {
     body = <PostGrid posts={items} />;
   } else if (feed.style === "carousel") {
-    body = (
-      <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {items.map((p) => <div key={p.id} className="snap-start shrink-0 w-[78%]"><FeedItem post={p} /></div>)}
-      </div>
-    );
+    body = <Carousel>{items.map((p) => <FeedItem key={p.id} post={p} bleed={false} />)}</Carousel>;
   } else if (feed.style === "showcase") {
     const [first, ...rest] = items;
     body = (

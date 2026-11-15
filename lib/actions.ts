@@ -291,6 +291,22 @@ export async function setBanner(_prev: ActionResult | null, fd: FormData): Promi
       publish();
       return { ok: true };
     }
+    if (fd.get("clearVideo") === "1") {
+      await db.update(settings).set({ bannerVideoUrl: null }).where(eq(settings.id, 1));
+      publish();
+      return { ok: true };
+    }
+    const video = fd.get("bannerVideo");
+    if (video instanceof File && video.size > 0) {
+      if (video.size > 15 * 1024 * 1024) return { ok: false, error: "Keep the video under 15 MB." };
+      const ext = video.type === "video/webm" ? "webm" : video.type === "video/quicktime" ? "mov" : "mp4";
+      if (!/^video\/(mp4|webm|quicktime)$/.test(video.type)) return { ok: false, error: "Use an MP4, WebM or MOV video." };
+      const bytes = new Uint8Array(await video.arrayBuffer());
+      const url = await putPublicFile(`banner/banner-${Date.now()}.${ext}`, bytes, video.type);
+      await db.update(settings).set({ bannerVideoUrl: url }).where(eq(settings.id, 1));
+      publish();
+      return { ok: true };
+    }
     const file = fd.get("banner");
     if (file instanceof File && file.size > 0) {
       if (file.size > 5 * 1024 * 1024) return { ok: false, error: "Keep it under 5 MB." };

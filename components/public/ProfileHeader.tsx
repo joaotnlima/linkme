@@ -75,7 +75,11 @@ export function ProfileHeader({ settings, share, layout }: { settings: Settings;
     return (
       <header className="flex flex-col items-center">
         <div className="relative w-full">
-          <div className="w-full h-36 md:h-44 bg-accent" style={settings.bannerUrl ? { backgroundImage: `url(${settings.bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} />
+          {settings.bannerVideoUrl ? (
+            <video src={settings.bannerVideoUrl} autoPlay muted loop playsInline poster={settings.bannerUrl ?? undefined} className="w-full h-36 md:h-44 object-cover bg-accent" />
+          ) : (
+            <div className="w-full h-36 md:h-44 bg-accent" style={settings.bannerUrl ? { backgroundImage: `url(${settings.bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} />
+          )}
           {share}
         </div>
         {avatar("w-24 h-24 -mt-12 border-4 border-bg text-3xl relative z-10")}

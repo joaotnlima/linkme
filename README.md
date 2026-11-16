@@ -4,7 +4,7 @@
 
 A self-hosted **link-in-bio page** with a **phone-first backoffice**. One owner, one page, no vendor, no plan limits. Runs on Vercel + Supabase in production and on an embedded Postgres on your laptop with a single command.
 
-Reference deployment: [links.joaotnlima.pt](https://links.joaotnlima.pt).
+The screenshots below show a fresh install with the starter demo content — everything is editable in the backoffice.
 
 <p align="center">
   <img src="docs/readme/phone.png" alt="Public page on a phone" width="260">&nbsp;&nbsp;

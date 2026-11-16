@@ -1,0 +1,1 @@
+ALTER TABLE "links"."settings" ADD COLUMN "banner_height" text DEFAULT 'md' NOT NULL;

@@ -78,6 +78,13 @@
       "when": 1794742722140,
       "tag": "0010_great_valkyrie",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794825363863,
+      "tag": "0011_aspiring_mulholland_black",
+      "breakpoints": true
     }
   ]
 }

@@ -73,6 +73,7 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
 
   const bannerUrl = f.bannerUrl ?? settings.bannerUrl;
   const bannerVideo = settings.bannerVideoUrl;
+  const bannerPH = ({ sm: "h-12", md: "h-20", lg: "h-28", xl: "h-36" } as Record<string, string>)[f.bannerHeight ?? settings.bannerHeight] ?? "h-20";
   const headingStyle = { fontFamily: "var(--font-heading)" } as const;
   const photoBig = settings.avatarUrl
     ? <img src={settings.avatarUrl} alt="" className="w-full aspect-[4/5] object-cover rounded-2xl bg-tile" />
@@ -123,8 +124,8 @@ export function LivePreview({ settings, links }: { settings: Settings; links: Li
             {layout === "banner" ? (
               <>
                 {bannerVideo
-                  ? <video src={bannerVideo} autoPlay muted loop playsInline className="relative -mx-4 -mt-6 w-[calc(100%+2rem)] h-20 object-cover bg-accent" />
-                  : <div className="relative -mx-4 -mt-6 w-[calc(100%+2rem)] h-20 bg-accent" style={bannerUrl ? { backgroundImage: `url(${bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} />}
+                  ? <video src={bannerVideo} autoPlay muted loop playsInline className={`relative -mx-4 -mt-6 w-[calc(100%+2rem)] ${bannerPH} object-cover bg-accent`} />
+                  : <div className={`relative -mx-4 -mt-6 w-[calc(100%+2rem)] ${bannerPH} bg-accent`} style={bannerUrl ? { backgroundImage: `url(${bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} />}
                 {avatarSm("-mt-8 border-4 relative z-10")}
                 <h1 className="text-lg font-bold leading-tight" style={headingStyle}>{name}</h1>
                 {texts}

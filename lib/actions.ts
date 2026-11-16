@@ -231,6 +231,7 @@ export async function updateSettings(_prev: ActionResult | null, fd: FormData): 
       wallpaperImageUrl: str(fd, "wallpaperImageUrl"),
       wallpaperVideoUrl: str(fd, "wallpaperVideoUrl"),
       profileShape: str(fd, "profileShape") || "circle",
+      bannerHeight: str(fd, "bannerHeight") || "md",
       logoUrl: str(fd, "logoUrl"),
       fontBody: str(fd, "fontBody"),
       fontHeading: str(fd, "fontHeading"),

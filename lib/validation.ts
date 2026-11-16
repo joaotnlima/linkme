@@ -59,6 +59,7 @@ export const settingsInput = z.object({
   wallpaperVideoUrl: optUrl,
   profileShape: z.enum(["circle", "rounded", "squircle", "burst"]).default("circle"),
   bannerUrl: optUrl,
+  bannerHeight: z.enum(["sm", "md", "lg", "xl"]).default("md"),
   logoUrl: optUrl,
   fontBody: fontName,
   fontHeading: fontName,

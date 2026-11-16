@@ -100,6 +100,7 @@ export function DesignControls({ settings }: { settings: Settings }) {
   const [btnBorder, setBtnBorder] = useState(settings.buttonBorder as "none" | "thin" | "thick");
   const [btnShadow, setBtnShadow] = useState(settings.buttonShadow as "none" | "soft" | "hard");
   const [btnHover, setBtnHover] = useState(settings.buttonHover as "none" | "grow" | "lift" | "color");
+  const [bannerH, setBannerH] = useState(settings.bannerHeight as "sm" | "md" | "lg" | "xl");
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-line bg-card p-4">
@@ -125,6 +126,11 @@ export function DesignControls({ settings }: { settings: Settings }) {
             <option value="banner">Banner</option>
           </select>
         </label>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label>Banner height <span className="font-normal text-muted">· for the Banner header</span></Label>
+        <Segmented name="bannerHeight" value={bannerH} onChange={setBannerH} options={[{ v: "sm", label: "Short" }, { v: "md", label: "Medium" }, { v: "lg", label: "Tall" }, { v: "xl", label: "XL" }]} />
       </div>
 
       <div className="flex flex-col gap-1.5">

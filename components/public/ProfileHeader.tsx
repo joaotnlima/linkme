@@ -7,6 +7,9 @@ function initials(name: string) {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
 }
 
+// Banner header height presets (mobile / desktop).
+const BANNER_H: Record<string, string> = { sm: "h-28 md:h-32", md: "h-36 md:h-44", lg: "h-56 md:h-72", xl: "h-72 md:h-[26rem]" };
+
 /**
  * Header composition chosen in Look → Design → Header layout.
  * - classic: round avatar, centered (padded container; `share` rendered by the page).
@@ -83,9 +86,9 @@ export function ProfileHeader({ settings, share, layout }: { settings: Settings;
       <header className="flex flex-col items-center">
         <div className="relative w-full">
           {settings.bannerVideoUrl ? (
-            <video src={settings.bannerVideoUrl} autoPlay muted loop playsInline poster={settings.bannerUrl ?? undefined} className="w-full h-36 md:h-44 object-cover bg-accent" />
+            <video src={settings.bannerVideoUrl} autoPlay muted loop playsInline poster={settings.bannerUrl ?? undefined} className={`w-full object-cover bg-accent ${BANNER_H[settings.bannerHeight] ?? BANNER_H.md}`} />
           ) : (
-            <div className="w-full h-36 md:h-44 bg-accent" style={settings.bannerUrl ? { backgroundImage: `url(${settings.bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} />
+            <div className={`w-full bg-accent ${BANNER_H[settings.bannerHeight] ?? BANNER_H.md}`} style={settings.bannerUrl ? { backgroundImage: `url(${settings.bannerUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} />
           )}
           {share}
         </div>

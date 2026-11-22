@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { withUtms, hostOf } from "@/lib/slug";
 
 // Copies the real destination URL (not the /go tracking link) with UTM params so
@@ -80,7 +81,7 @@ export function CopyButton({ url, campaign, label }: { url: string; campaign?: s
         )}
       </button>
 
-      {open ? (
+      {open && typeof document !== "undefined" ? createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/55" onClick={close}>
           <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={`QR code for ${label}`} onClick={(e) => e.stopPropagation()} className="share-pop relative w-full max-w-[350px] rounded-[28px] bg-card border border-line p-6 flex flex-col items-center gap-[18px] text-center shadow-[0_24px_60px_rgba(0,0,0,0.25)] outline-none">
             <button type="button" onClick={close} aria-label="Close" className="absolute right-3 top-3 w-9 h-9 rounded-full bg-bg text-muted flex items-center justify-center cursor-pointer">
@@ -100,14 +101,16 @@ export function CopyButton({ url, campaign, label }: { url: string; campaign?: s
             </div>
             <p className="text-xs text-muted">Link copied — point a camera at the code to open it</p>
           </div>
-        </div>
+        </div>,
+        document.body,
       ) : null}
 
-      {toast ? (
+      {toast && typeof document !== "undefined" ? createPortal(
         <div role="status" aria-live="polite" className="fixed left-1/2 bottom-[calc(1.25rem+env(safe-area-inset-bottom))] -translate-x-1/2 z-[60] flex items-center gap-2 rounded-full bg-ink text-bg px-4 py-2.5 text-sm font-semibold shadow-[0_12px_30px_rgba(0,0,0,0.3)] pointer-events-none">
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
           Link copied to clipboard
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </>
   );

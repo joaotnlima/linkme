@@ -1,7 +1,10 @@
 import "server-only";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { and, asc, desc, eq, gte, lt, sql, count } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
+import { tenantTag } from "@/lib/tenant";
+import type { Feed, Link, Post, Settings } from "@/lib/db/schema";
 
 const { settings, feeds, linksTable, posts, clicks } = schema;
 
@@ -15,8 +18,13 @@ export const getSettings = cache(async () => {
   return (await db.query.settings.findFirst({ where: eq(settings.id, 1) }))!;
 });
 
-/** Everything the public page needs, in display order. */
-export const getPublicPage = cache(async () => {
+export type PublicPageData = { settings: Settings; feeds: Feed[]; links: Link[]; posts: Post[] };
+
+// The raw DB read, in display order. Today `tenantId` is ignored (single-tenant,
+// one settings row); it is here so the cache keys/tags below are already
+// per-tenant and the eventual scoping is a one-line WHERE change.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- tenantId lands in the WHERE once scoping is added
+async function readPublicPage(tenantId: string): Promise<PublicPageData> {
   const db = await getDb();
   const [s, feedRows, linkRows, postRows] = await Promise.all([
     getSettings(),
@@ -25,6 +33,33 @@ export const getPublicPage = cache(async () => {
     db.select().from(posts).where(eq(posts.enabled, true)).orderBy(asc(posts.position), desc(posts.publishedAt)),
   ]);
   return { settings: s, feeds: feedRows, links: linkRows, posts: postRows };
+}
+
+// Next's Data Cache serializes through JSON, so Date columns come back as
+// strings. Re-hydrate the timestamps the render touches (idempotent: `new Date`
+// of an existing Date is still that instant). Keeps the cached payload a faithful
+// `PublicPageData` for consumers.
+function hydrate(d: PublicPageData): PublicPageData {
+  return {
+    settings: { ...d.settings, updatedAt: new Date(d.settings.updatedAt) },
+    feeds: d.feeds,
+    links: d.links.map((l) => ({ ...l, createdAt: new Date(l.createdAt), updatedAt: new Date(l.updatedAt) })),
+    posts: d.posts.map((p) => ({ ...p, publishedAt: p.publishedAt ? new Date(p.publishedAt) : null, createdAt: new Date(p.createdAt) })),
+  };
+}
+
+/**
+ * Everything the public page needs, served from the Data Cache so a normal visit
+ * never touches the DB. The entry is keyed and tagged per tenant: an owner edit
+ * calls `revalidateTag(tenantTag(id))` (see `lib/actions.ts`) and only that
+ * tenant's page is recomputed on its next request. `cache()` dedupes the two
+ * reads (generateMetadata + the page body) within a single request.
+ */
+export const getPublicPage = cache(async (tenantId: string): Promise<PublicPageData> => {
+  const read = unstable_cache(() => readPublicPage(tenantId), ["public-page", tenantId], {
+    tags: [tenantTag(tenantId)],
+  });
+  return hydrate(await read());
 });
 
 export async function getAdminData() {

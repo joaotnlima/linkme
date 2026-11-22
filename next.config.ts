@@ -33,6 +33,13 @@ const nextConfig: NextConfig = {
   },
   // Previous caching model: ISR via `export const revalidate` + revalidatePath on writes.
   cacheComponents: false,
+  // JS/CSS are already minified by SWC/Lightning CSS in production builds. This
+  // enables gzip on the responses when self-hosting via `next start`; on Vercel
+  // it is a no-op (the edge serves Brotli automatically). Explicit so "max
+  // performance" is verifiable (Content-Encoding header) rather than implicit.
+  compress: true,
+  // Don't ship browser source maps to production — smaller public payload.
+  productionBrowserSourceMaps: false,
   // Server Actions default to a 1 MB request body — too small for banner video uploads.
   experimental: { serverActions: { bodySizeLimit: "20mb" } },
   serverExternalPackages: ["@electric-sql/pglite", "postgres"],

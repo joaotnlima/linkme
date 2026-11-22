@@ -1,8 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
+import { DEFAULT_TENANT_ID, tenantTag } from "@/lib/tenant";
 import { requireOwner } from "@/lib/auth";
 import { feedInput, httpUrl, linkInput, postInput, settingsInput } from "@/lib/validation";
 import { slugify, platformOf } from "@/lib/slug";
@@ -17,8 +18,15 @@ const { settings, feeds, linksTable, posts } = schema;
 
 export type ActionResult = { ok: true } | { ok: false; error: string; fields?: Record<string, string> };
 
-function publish() {
-  revalidatePath("/");
+// After any owner edit: drop that tenant's cached public page (the Data Cache
+// entry tagged in `getPublicPage`) so its next visit recomputes the latest
+// version, and refresh the admin so the editor reflects the change immediately.
+// `updateTag` (vs `revalidateTag`) expires the tag at once with read-your-own-
+// writes semantics — it is only valid inside a Server Action, which every
+// `publish()` caller is. `tenantId` defaults to the single tenant today; pass it
+// once actions are tenant-scoped.
+function publish(tenantId: string = DEFAULT_TENANT_ID) {
+  updateTag(tenantTag(tenantId));
   revalidatePath("/admin", "layout");
 }
 

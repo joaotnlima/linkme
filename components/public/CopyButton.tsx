@@ -14,12 +14,21 @@ export function CopyButton({ url, campaign, label }: { url: string; campaign?: s
   const [qrSvg, setQrSvg] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const copiedUrlRef = useRef<string>(url);
+  // On touch devices, closing the overlay emits a synthetic click ~300ms later
+  // at the same spot — which lands on the now-exposed copy icon and reopens the
+  // modal (a flicker). Ignore any reopen within a short window after a close.
+  const reopenGuardUntil = useRef(0);
 
   const host = hostOf(url);
 
+  function close() {
+    setOpen(false);
+    reopenGuardUntil.current = Date.now() + 400;
+  }
+
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
     document.addEventListener("keydown", onKey);
     dialogRef.current?.focus();
     const prev = document.body.style.overflow;
@@ -31,6 +40,7 @@ export function CopyButton({ url, campaign, label }: { url: string; campaign?: s
   }, [open]);
 
   async function copy() {
+    if (Date.now() < reopenGuardUntil.current) return; // swallow the post-close ghost click
     const abs = withUtms(url, window.location.hostname.replace(/^www\./, ""), campaign);
     copiedUrlRef.current = abs;
     // Copy to the clipboard in the background …
@@ -71,9 +81,9 @@ export function CopyButton({ url, campaign, label }: { url: string; campaign?: s
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/55" onClick={() => setOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/55" onClick={close}>
           <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={`QR code for ${label}`} onClick={(e) => e.stopPropagation()} className="share-pop relative w-full max-w-[350px] rounded-[28px] bg-card border border-line p-6 flex flex-col items-center gap-[18px] text-center shadow-[0_24px_60px_rgba(0,0,0,0.25)] outline-none">
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="absolute right-3 top-3 w-9 h-9 rounded-full bg-bg text-muted flex items-center justify-center cursor-pointer">
+            <button type="button" onClick={close} aria-label="Close" className="absolute right-3 top-3 w-9 h-9 rounded-full bg-bg text-muted flex items-center justify-center cursor-pointer">
               <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
             <h2 className="text-xl font-bold leading-tight px-4">{label}</h2>

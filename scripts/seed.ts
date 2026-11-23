@@ -5,7 +5,7 @@ config();
 import { sql } from "drizzle-orm";
 
 async function main() {
-  const { getDb, schema } = await import("../lib/db");
+  const { getDb, schema } = await import("../packages/core/lib/db");
   const db = await getDb();
   const { settings, feeds, linksTable, posts } = schema;
   const [{ n }] = await db.select({ n: sql<number>`count(*)` }).from(linksTable);

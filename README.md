@@ -15,6 +15,20 @@ The screenshots below show a fresh install with the starter demo content — eve
   <img src="docs/readme/desktop.png" alt="Public page on desktop" width="800">
 </p>
 
+## Deploy your own
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fjoaotnlima%2Flinkme&root-directory=apps/web&env=DATABASE_URL,NEXT_PUBLIC_SITE_URL,OWNER_GITHUB_ID,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,SUPABASE_SECRET_KEY)
+
+One click clones this repo to your own Vercel project and prompts for the six environment variables it needs. The app lives in the `apps/web` workspace (the button already points Vercel at it); the engine is the `@linkme/core` package.
+
+### Custom domain
+
+1. In the Vercel dashboard, open your project → **Settings → Domains** and add your domain (e.g. `links.example.com`). Follow Vercel's DNS instructions at your registrar.
+2. Set `NEXT_PUBLIC_SITE_URL` to the full URL of that domain (e.g. `https://links.example.com`) under **Settings → Environment Variables**.
+3. **Redeploy** so the new `NEXT_PUBLIC_SITE_URL` is baked in.
+4. Vercel automatically issues and renews a TLS certificate for the domain — no action needed; `https://` starts working once DNS propagates.
+5. QR codes, the share card and `/go/<slug>` UTM links all derive from `NEXT_PUBLIC_SITE_URL`, so they follow your custom domain automatically.
+
 ## What you get
 
 **Public page**
@@ -116,26 +130,33 @@ The post lands in the feed whose title mentions the platform (e.g. "Latest on Li
 
 ## How it works
 
+An **npm-workspaces monorepo**: the provider-agnostic engine lives in `packages/core` (`@linkme/core`), and the self-host Next app is `apps/web` (`@linkme/web`).
+
 ```
-app/
-  page.tsx            public page — ISR (60 s), purged on every admin write
-  card/               stand-alone share card (QR)
-  go/[slug]/route.ts  302 redirect + click insert
-  admin/**            backoffice (owner only)
-  api/ingest/         token-authenticated post intake
-  auth/**             Supabase OAuth callback / sign-out
-components/public/    page layouts, background, share card, client islands
-components/admin/     forms (Server Actions via useActionState)
-lib/
-  db/schema.ts        Drizzle schema in pgSchema("links")
-  db/index.ts         PGlite locally, postgres-js on Supabase
-  actions.ts          every write; each ends with revalidatePath("/")
-  queries.ts          reads; stats bucketed in Europe/Lisbon (change TZ there)
-  fetchers.ts         site icons, OpenGraph, Instagram Graph; SSRF/size limits apply
-  storage.ts          public/uploads locally, Supabase Storage in production
-  auth.ts             owner check (GitHub numeric id)
-drizzle/              SQL migrations (drizzle-kit)
-scripts/seed.ts       starter content
+apps/web/               the Next.js app ("@linkme/web")
+  app/
+    page.tsx            public page — force-dynamic, served from the per-tenant Data Cache
+    card/               stand-alone share card (QR)
+    go/[slug]/route.ts  302 redirect + click insert
+    admin/**            backoffice (owner only)
+    api/ingest/         token-authenticated post intake
+    auth/**             Supabase OAuth callback / sign-out
+  lib/auth-provider.ts  GitHub/Supabase owner check, wired via instrumentation.ts
+  instrumentation.ts    configureAuth(githubOwnerProvider) at startup
+  next.config.ts        transpilePackages: ["@linkme/core"], CSP, Server Actions limit
+packages/core/          the engine ("@linkme/core")
+  components/public/    page layouts, background, share card, client islands
+  components/admin/     forms (Server Actions via useActionState)
+  lib/
+    auth.ts             provider-agnostic auth seam (configureAuth/getOwner/requireOwner*)
+    db/schema.ts        Drizzle schema in pgSchema("links")
+    db/index.ts         PGlite locally, postgres-js on Supabase
+    actions.ts          every write; each ends with revalidateTag
+    queries.ts          reads; stats bucketed in Europe/Lisbon (change TZ there)
+    fetchers.ts         site icons, OpenGraph, Instagram Graph; SSRF/size limits apply
+    storage.ts          public/uploads locally, Supabase Storage in production
+  drizzle/              SQL migrations (drizzle-kit)
+scripts/seed.ts         starter content
 ```
 
 Design decisions and their reasons are in [`BULLETPROOF.md`](BULLETPROOF.md) (what's hardened, what's not yet) and in the design review that produced this architecture (one owner, Server Actions over REST, no slug cache, inline click insert, images always copied into own storage).

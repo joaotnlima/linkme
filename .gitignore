@@ -3,6 +3,10 @@ node_modules
 .data
 .env*.local
 public/uploads
+apps/web/public/uploads
+*.tsbuildinfo
+.base-ast
+.base-ast-cache
 *.log
 .DS_Store
 AGENTS.md

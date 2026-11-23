@@ -1,4 +1,5 @@
 {
+  "comment": "Root monorepo config. Each workspace has its own tsconfig; typecheck with `tsc -p apps/web` and `tsc -p packages/core`. This config covers root-level tooling scripts only (drizzle.config.ts, scripts/).",
   "compilerOptions": {
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -11,24 +12,8 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./*"]
-    }
+    "incremental": true
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
-  ],
-  "exclude": ["node_modules", "linkme-video"]
+  "include": ["scripts/**/*.ts", "drizzle.config.ts"],
+  "exclude": ["node_modules", "apps", "packages", "linkme-video"]
 }

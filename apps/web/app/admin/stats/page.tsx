@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireOwnerPage } from "@linkme/core/lib/auth";
 import { getStats, type Range } from "@linkme/core/lib/queries";
+import { currentTenantId } from "@linkme/core/lib/tenant";
 import { LinkIcon } from "@linkme/core/components/public/Icon";
 
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -15,7 +16,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Promis
   const { range: r, day: d } = await searchParams;
   const range: Range = r === "7d" || r === "90d" ? r : "30d";
   const day = d && DAY_RE.test(d) ? d : null;
-  const s = await getStats(range, day);
+  const s = await getStats(await currentTenantId(), range, day);
   const max = Math.max(1, ...s.series.map((x) => x.n));
   const delta = s.prev ? Math.round(((s.total - s.prev) / s.prev) * 100) : null;
   return (

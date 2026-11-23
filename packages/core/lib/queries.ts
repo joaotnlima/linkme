@@ -10,27 +10,27 @@ const { settings, feeds, linksTable, posts, clicks } = schema;
 
 // `cache()` dedupes per request: the public page calls these in both
 // generateMetadata and the component — without it that's double the queries.
-export const getSettings = cache(async () => {
+// One settings row per tenant, keyed by tenantId.
+export const getSettings = cache(async (tenantId: string) => {
   const db = await getDb();
-  const row = await db.query.settings.findFirst({ where: eq(settings.id, 1) });
+  const row = await db.query.settings.findFirst({ where: eq(settings.tenantId, tenantId) });
   if (row) return row;
-  await db.insert(settings).values({ id: 1 }).onConflictDoNothing();
-  return (await db.query.settings.findFirst({ where: eq(settings.id, 1) }))!;
+  await db.insert(settings).values({ tenantId }).onConflictDoNothing();
+  return (await db.query.settings.findFirst({ where: eq(settings.tenantId, tenantId) }))!;
 });
 
 export type PublicPageData = { settings: Settings; feeds: Feed[]; links: Link[]; posts: Post[] };
 
-// The raw DB read, in display order. Today `tenantId` is ignored (single-tenant,
-// one settings row); it is here so the cache keys/tags below are already
-// per-tenant and the eventual scoping is a one-line WHERE change.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- tenantId lands in the WHERE once scoping is added
+// The raw DB read, in display order. Every select is scoped to the tenant in
+// its WHERE clause (never fetch-then-filter), which is also what keeps the
+// per-tenant cache entries below correct.
 async function readPublicPage(tenantId: string): Promise<PublicPageData> {
   const db = await getDb();
   const [s, feedRows, linkRows, postRows] = await Promise.all([
-    getSettings(),
-    db.select().from(feeds).where(eq(feeds.enabled, true)).orderBy(asc(feeds.position)),
-    db.select().from(linksTable).where(eq(linksTable.enabled, true)).orderBy(asc(linksTable.position)),
-    db.select().from(posts).where(eq(posts.enabled, true)).orderBy(asc(posts.position), desc(posts.publishedAt)),
+    getSettings(tenantId),
+    db.select().from(feeds).where(and(eq(feeds.tenantId, tenantId), eq(feeds.enabled, true))).orderBy(asc(feeds.position)),
+    db.select().from(linksTable).where(and(eq(linksTable.tenantId, tenantId), eq(linksTable.enabled, true))).orderBy(asc(linksTable.position)),
+    db.select().from(posts).where(and(eq(posts.tenantId, tenantId), eq(posts.enabled, true))).orderBy(asc(posts.position), desc(posts.publishedAt)),
   ]);
   return { settings: s, feeds: feedRows, links: linkRows, posts: postRows };
 }
@@ -62,55 +62,56 @@ export const getPublicPage = cache(async (tenantId: string): Promise<PublicPageD
   return hydrate(await read());
 });
 
-export async function getAdminData() {
+export async function getAdminData(tenantId: string) {
   const db = await getDb();
   const [s, feedRows, linkRows, postRows, clickCounts] = await Promise.all([
-    getSettings(),
-    db.select().from(feeds).orderBy(asc(feeds.position)),
-    db.select().from(linksTable).orderBy(asc(linksTable.position)),
-    db.select().from(posts).orderBy(asc(posts.position), desc(posts.publishedAt)),
-    db.select({ linkId: clicks.linkId, n: count() }).from(clicks).groupBy(clicks.linkId),
+    getSettings(tenantId),
+    db.select().from(feeds).where(eq(feeds.tenantId, tenantId)).orderBy(asc(feeds.position)),
+    db.select().from(linksTable).where(eq(linksTable.tenantId, tenantId)).orderBy(asc(linksTable.position)),
+    db.select().from(posts).where(eq(posts.tenantId, tenantId)).orderBy(asc(posts.position), desc(posts.publishedAt)),
+    db.select({ linkId: clicks.linkId, n: count() }).from(clicks).where(eq(clicks.tenantId, tenantId)).groupBy(clicks.linkId),
   ]);
   const clicksByLink = new Map(clickCounts.map((c) => [c.linkId, Number(c.n)]));
   return { settings: s, feeds: feedRows, links: linkRows, posts: postRows, clicksByLink };
 }
 
-export async function resolveSlug(slug: string) {
+export async function resolveSlug(tenantId: string, slug: string) {
   const db = await getDb();
   return db.query.linksTable.findFirst({
-    where: and(eq(linksTable.slug, slug), eq(linksTable.enabled, true)),
+    where: and(eq(linksTable.tenantId, tenantId), eq(linksTable.slug, slug), eq(linksTable.enabled, true)),
     columns: { id: true, url: true },
   });
 }
 
-export async function recordClick(linkId: string) {
+export async function recordClick(tenantId: string, linkId: string) {
   const db = await getDb();
-  await db.insert(clicks).values({ linkId });
+  await db.insert(clicks).values({ tenantId, linkId });
 }
 
 export type Range = "7d" | "30d" | "90d";
 
-export async function getStats(range: Range, day?: string | null) {
+export async function getStats(tenantId: string, range: Range, day?: string | null) {
   const db = await getDb();
   const days = range === "7d" ? 7 : range === "30d" ? 30 : 90;
   const since = new Date(Date.now() - days * 86_400_000);
   const prevSince = new Date(since.getTime() - days * 86_400_000);
   const tz = "Europe/Lisbon";
+  const forTenant = eq(clicks.tenantId, tenantId);
   // The chart series always spans the full range so any day can be picked.
   const perDay = await db
     .select({ day: sql<string>`to_char(${clicks.ts} at time zone ${tz}, 'YYYY-MM-DD')`, n: count() })
     .from(clicks)
-    .where(gte(clicks.ts, since))
+    .where(and(forTenant, gte(clicks.ts, since)))
     .groupBy(sql`1`)
     .orderBy(sql`1`);
   // Total + per-link honor the selected day when one is picked, else the range.
   const scope = day
-    ? sql`to_char(${clicks.ts} at time zone ${tz}, 'YYYY-MM-DD') = ${day}`
-    : gte(clicks.ts, since);
+    ? and(forTenant, sql`to_char(${clicks.ts} at time zone ${tz}, 'YYYY-MM-DD') = ${day}`)
+    : and(forTenant, gte(clicks.ts, since));
   const [totalRow] = await db.select({ n: count() }).from(clicks).where(scope);
   const [prevRow] = day
     ? [undefined]
-    : await db.select({ n: count() }).from(clicks).where(and(gte(clicks.ts, prevSince), lt(clicks.ts, since)));
+    : await db.select({ n: count() }).from(clicks).where(and(forTenant, gte(clicks.ts, prevSince), lt(clicks.ts, since)));
   const perLink = await db
     .select({ linkId: clicks.linkId, title: linksTable.title, iconUrl: linksTable.iconUrl, iconEmoji: linksTable.iconEmoji, n: count() })
     .from(clicks)

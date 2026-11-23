@@ -7,6 +7,8 @@ import {
   bigserial,
   timestamp,
   index,
+  uniqueIndex,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -14,8 +16,34 @@ import { relations } from "drizzle-orm";
 // exposes `public` by default) never sees these tables.
 export const links = pgSchema("links");
 
+// The tenant dimension. Single-tenant self-host runs with exactly one row
+// (id = "default"); the SaaS platform adds one per signup. Every other table
+// carries `tenantId` → tenant.id (on delete cascade) so a tenant's data is
+// isolated and its removal is a single cascade.
+export const tenant = links.table("tenant", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  plan: text("plan").notNull().default("free"), // free | pro
+  status: text("status").notNull().default("active"), // active | past_due | canceled
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const tenantMembers = links.table(
+  "tenant_member",
+  {
+    tenantId: text("tenant_id")
+      .notNull()
+      .references(() => tenant.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull(),
+    role: text("role").notNull().default("owner"), // owner (teams later)
+  },
+  (t) => [primaryKey({ columns: [t.tenantId, t.userId] })],
+);
+
 export const settings = links.table("settings", {
-  id: integer("id").primaryKey().default(1),
+  tenantId: text("tenant_id")
+    .primaryKey()
+    .references(() => tenant.id, { onDelete: "cascade" }),
   displayName: text("display_name").notNull().default("Your name"),
   bio: text("bio").default(""),
   tagline: text("tagline").default(""),
@@ -58,6 +86,9 @@ export const settings = links.table("settings", {
 
 export const feeds = links.table("feed", {
   id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: text("tenant_id")
+    .notNull()
+    .references(() => tenant.id, { onDelete: "cascade" }),
   title: text("title").notNull(), // "Latest on LinkedIn"
   position: integer("position").notNull().default(0),
   enabled: boolean("enabled").notNull().default(true),
@@ -69,7 +100,10 @@ export const linksTable = links.table(
   "link",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    slug: text("slug").notNull().unique(),
+    tenantId: text("tenant_id")
+      .notNull()
+      .references(() => tenant.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull(),
     title: text("title").notNull(),
     subtitle: text("subtitle"),
     url: text("url").notNull(),
@@ -82,13 +116,19 @@ export const linksTable = links.table(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("link_position").on(t.position)],
+  (t) => [
+    index("link_position").on(t.position),
+    uniqueIndex("link_tenant_slug").on(t.tenantId, t.slug),
+  ],
 );
 
 export const posts = links.table(
   "post",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: text("tenant_id")
+      .notNull()
+      .references(() => tenant.id, { onDelete: "cascade" }),
     feedId: uuid("feed_id")
       .notNull()
       .references(() => feeds.id, { onDelete: "cascade" }),
@@ -112,6 +152,9 @@ export const clicks = links.table(
   "click",
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
+    tenantId: text("tenant_id")
+      .notNull()
+      .references(() => tenant.id, { onDelete: "cascade" }),
     linkId: uuid("link_id")
       .notNull()
       .references(() => linksTable.id, { onDelete: "cascade" }),
@@ -131,3 +174,5 @@ export type Link = typeof linksTable.$inferSelect;
 export type Feed = typeof feeds.$inferSelect;
 export type Post = typeof posts.$inferSelect;
 export type Settings = typeof settings.$inferSelect;
+export type Tenant = typeof tenant.$inferSelect;
+export type TenantMember = typeof tenantMembers.$inferSelect;

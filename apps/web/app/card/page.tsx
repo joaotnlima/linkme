@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next";
 import { getSettings } from "@linkme/core/lib/queries";
+import { currentTenantId } from "@linkme/core/lib/tenant";
 import { siteQrSvg, siteUrl } from "@linkme/core/lib/share";
 import { ShareActions } from "@linkme/core/components/public/ShareActions";
 
@@ -14,7 +15,7 @@ function initials(name: string) {
 
 /** Full-screen "business card": QR of the page, for showing your phone to someone. */
 export default async function CardPage() {
-  const s = await getSettings();
+  const s = await getSettings(await currentTenantId());
   const url = siteUrl;
   const svg = await siteQrSvg();
   const host = url.replace(/^https?:\/\//, "");

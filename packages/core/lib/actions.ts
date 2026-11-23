@@ -3,7 +3,7 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
-import { DEFAULT_TENANT_ID, tenantTag } from "@/lib/tenant";
+import { currentTenantId, tenantTag } from "@/lib/tenant";
 import { requireOwner } from "@/lib/auth";
 import { feedInput, httpUrl, linkInput, postInput, settingsInput } from "@/lib/validation";
 import { slugify, platformOf } from "@/lib/slug";
@@ -23,9 +23,9 @@ export type ActionResult = { ok: true } | { ok: false; error: string; fields?: R
 // version, and refresh the admin so the editor reflects the change immediately.
 // `updateTag` (vs `revalidateTag`) expires the tag at once with read-your-own-
 // writes semantics — it is only valid inside a Server Action, which every
-// `publish()` caller is. `tenantId` defaults to the single tenant today; pass it
-// once actions are tenant-scoped.
-function publish(tenantId: string = DEFAULT_TENANT_ID) {
+// `publish()` caller is. Every action resolves its tenant up front and passes
+// it so only that tenant's cached page is dropped.
+function publish(tenantId: string) {
   updateTag(tenantTag(tenantId));
   revalidatePath("/admin", "layout");
 }
@@ -50,11 +50,14 @@ function checked(fd: FormData, k: string) {
   return all.length ? all[all.length - 1] === "on" : true;
 }
 
-async function uniqueSlug(base: string, exceptId?: string) {
+async function uniqueSlug(tenantId: string, base: string, exceptId?: string) {
   const db = await getDb();
   let candidate = base;
   for (let i = 2; i < 100; i++) {
-    const hit = await db.query.linksTable.findFirst({ where: eq(linksTable.slug, candidate), columns: { id: true } });
+    const hit = await db.query.linksTable.findFirst({
+      where: and(eq(linksTable.tenantId, tenantId), eq(linksTable.slug, candidate)),
+      columns: { id: true },
+    });
     if (!hit || hit.id === exceptId) return candidate;
     candidate = `${base}-${i}`;
   }
@@ -66,6 +69,7 @@ async function uniqueSlug(base: string, exceptId?: string) {
 export async function createLink(_prev: ActionResult | null, fd: FormData): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const input = linkInput.parse({
       url: str(fd, "url"),
       title: str(fd, "title"),
@@ -78,11 +82,12 @@ export async function createLink(_prev: ActionResult | null, fd: FormData): Prom
     });
     if (/^https?:/i.test(input.url)) await assertPublicUrl(input.url);
     const db = await getDb();
-    const [{ max }] = await db.select({ max: sql<number>`coalesce(max(${linksTable.position}), -1)` }).from(linksTable);
-    const slug = await uniqueSlug(input.slug || slugify(input.title));
+    const [{ max }] = await db.select({ max: sql<number>`coalesce(max(${linksTable.position}), -1)` }).from(linksTable).where(eq(linksTable.tenantId, tenantId));
+    const slug = await uniqueSlug(tenantId, input.slug || slugify(input.title));
     const [row] = await db
       .insert(linksTable)
       .values({
+        tenantId,
         url: input.url,
         title: input.title,
         subtitle: input.subtitle || null,
@@ -94,12 +99,12 @@ export async function createLink(_prev: ActionResult | null, fd: FormData): Prom
         position: Number(max) + 1,
       })
       .returning({ id: linksTable.id });
-    publish();
+    publish(tenantId);
     // Icon fetch after the row exists; a failure leaves the letter tile.
     const iconUrl = await fetchIconFor(row.id, input.url).catch(() => null);
     if (iconUrl) {
-      await db.update(linksTable).set({ iconUrl }).where(eq(linksTable.id, row.id));
-      publish();
+      await db.update(linksTable).set({ iconUrl }).where(and(eq(linksTable.tenantId, tenantId), eq(linksTable.id, row.id)));
+      publish(tenantId);
     }
     return { ok: true };
   } catch (e) {
@@ -110,6 +115,7 @@ export async function createLink(_prev: ActionResult | null, fd: FormData): Prom
 export async function updateLink(_prev: ActionResult | null, fd: FormData): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const id = str(fd, "id");
     const input = linkInput.parse({
       url: str(fd, "url"),
@@ -123,9 +129,9 @@ export async function updateLink(_prev: ActionResult | null, fd: FormData): Prom
     });
     if (/^https?:/i.test(input.url)) await assertPublicUrl(input.url);
     const db = await getDb();
-    const existing = await db.query.linksTable.findFirst({ where: eq(linksTable.id, id) });
+    const existing = await db.query.linksTable.findFirst({ where: and(eq(linksTable.tenantId, tenantId), eq(linksTable.id, id)) });
     if (!existing) return { ok: false, error: "Link not found." };
-    const slug = await uniqueSlug(input.slug || existing.slug, id);
+    const slug = await uniqueSlug(tenantId, input.slug || existing.slug, id);
     await db
       .update(linksTable)
       .set({
@@ -139,13 +145,13 @@ export async function updateLink(_prev: ActionResult | null, fd: FormData): Prom
         iconEmoji: input.iconEmoji || null,
         updatedAt: new Date(),
       })
-      .where(eq(linksTable.id, id));
-    publish();
+      .where(and(eq(linksTable.tenantId, tenantId), eq(linksTable.id, id)));
+    publish(tenantId);
     if (existing.url !== input.url || !existing.iconUrl) {
       const iconUrl = await fetchIconFor(id, input.url).catch(() => null);
       if (iconUrl) {
-        await db.update(linksTable).set({ iconUrl }).where(eq(linksTable.id, id));
-        publish();
+        await db.update(linksTable).set({ iconUrl }).where(and(eq(linksTable.tenantId, tenantId), eq(linksTable.id, id)));
+        publish(tenantId);
       }
     }
     return { ok: true };
@@ -157,9 +163,10 @@ export async function updateLink(_prev: ActionResult | null, fd: FormData): Prom
 export async function setLinkEnabled(id: string, enabled: boolean): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const db = await getDb();
-    await db.update(linksTable).set({ enabled, updatedAt: new Date() }).where(eq(linksTable.id, id));
-    publish();
+    await db.update(linksTable).set({ enabled, updatedAt: new Date() }).where(and(eq(linksTable.tenantId, tenantId), eq(linksTable.id, id)));
+    publish(tenantId);
     return { ok: true };
   } catch (e) {
     return fieldErrors(e);
@@ -169,9 +176,10 @@ export async function setLinkEnabled(id: string, enabled: boolean): Promise<Acti
 export async function deleteLink(id: string): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const db = await getDb();
-    await db.delete(linksTable).where(eq(linksTable.id, id));
-    publish();
+    await db.delete(linksTable).where(and(eq(linksTable.tenantId, tenantId), eq(linksTable.id, id)));
+    publish(tenantId);
     return { ok: true };
   } catch (e) {
     return fieldErrors(e);
@@ -182,12 +190,14 @@ export async function deleteLink(id: string): Promise<ActionResult> {
 export async function moveLink(id: string, dir: "up" | "down"): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const db = await getDb();
-    const me = await db.query.linksTable.findFirst({ where: eq(linksTable.id, id) });
+    const me = await db.query.linksTable.findFirst({ where: and(eq(linksTable.tenantId, tenantId), eq(linksTable.id, id)) });
     if (!me) return { ok: false, error: "Link not found." };
     const siblings = await db
       .select({ id: linksTable.id })
       .from(linksTable)
+      .where(eq(linksTable.tenantId, tenantId))
       .orderBy(asc(linksTable.position), asc(linksTable.createdAt));
     const ids = siblings.map((s) => s.id);
     const i = ids.indexOf(id);
@@ -196,10 +206,10 @@ export async function moveLink(id: string, dir: "up" | "down"): Promise<ActionRe
     [ids[i], ids[j]] = [ids[j], ids[i]];
     await db.transaction(async (tx) => {
       for (let k = 0; k < ids.length; k++) {
-        await tx.update(linksTable).set({ position: k }).where(eq(linksTable.id, ids[k]));
+        await tx.update(linksTable).set({ position: k }).where(and(eq(linksTable.tenantId, tenantId), eq(linksTable.id, ids[k])));
       }
     });
-    publish();
+    publish(tenantId);
     return { ok: true };
   } catch (e) {
     return fieldErrors(e);
@@ -211,6 +221,7 @@ export async function moveLink(id: string, dir: "up" | "down"): Promise<ActionRe
 export async function updateSettings(_prev: ActionResult | null, fd: FormData): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const input = settingsInput.parse({
       displayName: str(fd, "displayName"),
       bio: str(fd, "bio"),
@@ -259,8 +270,8 @@ export async function updateSettings(_prev: ActionResult | null, fd: FormData): 
       wallpaperVideoUrl: input.wallpaperVideoUrl || null,
       logoUrl: input.logoUrl || null,
       updatedAt: new Date(),
-    }).where(eq(settings.id, 1));
-    publish();
+    }).where(eq(settings.tenantId, tenantId));
+    publish(tenantId);
     return { ok: true };
   } catch (e) {
     return fieldErrors(e);
@@ -270,10 +281,11 @@ export async function updateSettings(_prev: ActionResult | null, fd: FormData): 
 export async function setAvatar(_prev: ActionResult | null, fd: FormData): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const db = await getDb();
     if (fd.get("clear") === "1") {
-      await db.update(settings).set({ avatarUrl: null }).where(eq(settings.id, 1));
-      publish();
+      await db.update(settings).set({ avatarUrl: null }).where(eq(settings.tenantId, tenantId));
+      publish(tenantId);
       return { ok: true };
     }
     const file = fd.get("avatar");
@@ -283,8 +295,8 @@ export async function setAvatar(_prev: ActionResult | null, fd: FormData): Promi
     const kind = sniffImage(bytes);
     if (!kind || kind.ext === "ico") return { ok: false, error: "Use a PNG, JPEG, GIF or WebP image." };
     const url = await putPublicFile(`avatar/avatar-${Date.now()}.${kind.ext}`, bytes, kind.type);
-    await db.update(settings).set({ avatarUrl: url }).where(eq(settings.id, 1));
-    publish();
+    await db.update(settings).set({ avatarUrl: url }).where(eq(settings.tenantId, tenantId));
+    publish(tenantId);
     return { ok: true };
   } catch (e) {
     return fieldErrors(e);
@@ -294,15 +306,16 @@ export async function setAvatar(_prev: ActionResult | null, fd: FormData): Promi
 export async function setBanner(_prev: ActionResult | null, fd: FormData): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const db = await getDb();
     if (fd.get("clear") === "1") {
-      await db.update(settings).set({ bannerUrl: null }).where(eq(settings.id, 1));
-      publish();
+      await db.update(settings).set({ bannerUrl: null }).where(eq(settings.tenantId, tenantId));
+      publish(tenantId);
       return { ok: true };
     }
     if (fd.get("clearVideo") === "1") {
-      await db.update(settings).set({ bannerVideoUrl: null }).where(eq(settings.id, 1));
-      publish();
+      await db.update(settings).set({ bannerVideoUrl: null }).where(eq(settings.tenantId, tenantId));
+      publish(tenantId);
       return { ok: true };
     }
     const video = fd.get("bannerVideo");
@@ -312,8 +325,8 @@ export async function setBanner(_prev: ActionResult | null, fd: FormData): Promi
       if (!/^video\/(mp4|webm|quicktime)$/.test(video.type)) return { ok: false, error: "Use an MP4, WebM or MOV video." };
       const bytes = new Uint8Array(await video.arrayBuffer());
       const url = await putPublicFile(`banner/banner-${Date.now()}.${ext}`, bytes, video.type);
-      await db.update(settings).set({ bannerVideoUrl: url }).where(eq(settings.id, 1));
-      publish();
+      await db.update(settings).set({ bannerVideoUrl: url }).where(eq(settings.tenantId, tenantId));
+      publish(tenantId);
       return { ok: true };
     }
     const file = fd.get("banner");
@@ -323,16 +336,16 @@ export async function setBanner(_prev: ActionResult | null, fd: FormData): Promi
       const kind = sniffImage(bytes);
       if (!kind || kind.ext === "ico") return { ok: false, error: "Use a PNG, JPEG, GIF or WebP image." };
       const url = await putPublicFile(`banner/banner-${Date.now()}.${kind.ext}`, bytes, kind.type);
-      await db.update(settings).set({ bannerUrl: url }).where(eq(settings.id, 1));
-      publish();
+      await db.update(settings).set({ bannerUrl: url }).where(eq(settings.tenantId, tenantId));
+      publish(tenantId);
       return { ok: true };
     }
     const url = str(fd, "url");
     if (url) {
       // Route by extension: a video URL goes to bannerVideoUrl, else the image.
       const isVideo = /\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(url);
-      await db.update(settings).set(isVideo ? { bannerVideoUrl: url } : { bannerUrl: url }).where(eq(settings.id, 1));
-      publish();
+      await db.update(settings).set(isVideo ? { bannerVideoUrl: url } : { bannerUrl: url }).where(eq(settings.tenantId, tenantId));
+      publish(tenantId);
       return { ok: true };
     }
     return { ok: false, error: "Paste a URL or choose a file." };
@@ -346,6 +359,7 @@ export async function setBanner(_prev: ActionResult | null, fd: FormData): Promi
 export async function upsertFeed(_prev: ActionResult | null, fd: FormData): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const id = str(fd, "id");
     const input = feedInput.parse({
       title: str(fd, "title"),
@@ -355,12 +369,12 @@ export async function upsertFeed(_prev: ActionResult | null, fd: FormData): Prom
     });
     const db = await getDb();
     if (id) {
-      await db.update(feeds).set(input).where(eq(feeds.id, id));
+      await db.update(feeds).set(input).where(and(eq(feeds.tenantId, tenantId), eq(feeds.id, id)));
     } else {
-      const [{ max }] = await db.select({ max: sql<number>`coalesce(max(${feeds.position}), -1)` }).from(feeds);
-      await db.insert(feeds).values({ ...input, position: Number(max) + 1 });
+      const [{ max }] = await db.select({ max: sql<number>`coalesce(max(${feeds.position}), -1)` }).from(feeds).where(eq(feeds.tenantId, tenantId));
+      await db.insert(feeds).values({ ...input, tenantId, position: Number(max) + 1 });
     }
-    publish();
+    publish(tenantId);
     return { ok: true };
   } catch (e) {
     return fieldErrors(e);
@@ -370,17 +384,18 @@ export async function upsertFeed(_prev: ActionResult | null, fd: FormData): Prom
 export async function moveFeed(id: string, dir: "up" | "down"): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const db = await getDb();
-    const rows = await db.select({ id: feeds.id }).from(feeds).orderBy(asc(feeds.position));
+    const rows = await db.select({ id: feeds.id }).from(feeds).where(eq(feeds.tenantId, tenantId)).orderBy(asc(feeds.position));
     const ids = rows.map((r) => r.id);
     const i = ids.indexOf(id);
     const j = dir === "up" ? i - 1 : i + 1;
     if (i < 0 || j < 0 || j >= ids.length) return { ok: true };
     [ids[i], ids[j]] = [ids[j], ids[i]];
     await db.transaction(async (tx) => {
-      for (let k = 0; k < ids.length; k++) await tx.update(feeds).set({ position: k }).where(eq(feeds.id, ids[k]));
+      for (let k = 0; k < ids.length; k++) await tx.update(feeds).set({ position: k }).where(and(eq(feeds.tenantId, tenantId), eq(feeds.id, ids[k])));
     });
-    publish();
+    publish(tenantId);
     return { ok: true };
   } catch (e) {
     return fieldErrors(e);
@@ -390,9 +405,10 @@ export async function moveFeed(id: string, dir: "up" | "down"): Promise<ActionRe
 export async function deleteFeed(id: string): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const db = await getDb();
-    await db.delete(feeds).where(eq(feeds.id, id));
-    publish();
+    await db.delete(feeds).where(and(eq(feeds.tenantId, tenantId), eq(feeds.id, id)));
+    publish(tenantId);
     return { ok: true };
   } catch (e) {
     return fieldErrors(e);
@@ -404,9 +420,10 @@ export async function deleteFeed(id: string): Promise<ActionResult> {
 export async function addPostByUrl(_prev: ActionResult | null, fd: FormData): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const input = postInput.parse({ feedId: str(fd, "feedId"), url: str(fd, "url"), title: str(fd, "title") });
-    const r = await ingestPost({ url: input.url, feedId: input.feedId, title: input.title || null });
-    publish();
+    const r = await ingestPost({ tenantId, url: input.url, feedId: input.feedId, title: input.title || null });
+    publish(tenantId);
     if (!r.ok) return r;
     if (r.duplicate) return { ok: false, error: "That URL is already in this feed." };
     if (r.preview === "blocked" && !input.title) return { ok: false, error: "Saved, but the site blocked the preview fetch — edit the post to add a title." };
@@ -419,12 +436,13 @@ export async function addPostByUrl(_prev: ActionResult | null, fd: FormData): Pr
 export async function updatePost(_prev: ActionResult | null, fd: FormData): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const id = str(fd, "id");
     const url = httpUrl.parse(str(fd, "url"));
     await assertPublicUrl(url);
     const db = await getDb();
     let imageUrl: string | null = str(fd, "imageUrl") || null;
-    const previous = await db.query.posts.findFirst({ where: eq(posts.id, id), columns: { imageUrl: true } });
+    const previous = await db.query.posts.findFirst({ where: and(eq(posts.tenantId, tenantId), eq(posts.id, id)), columns: { imageUrl: true } });
     // A pasted external image URL (CDN links expire and block hotlinking): copy it into our storage.
     if (imageUrl && imageUrl !== previous?.imageUrl && /^https?:\/\//i.test(imageUrl) && !imageUrl.startsWith(env.siteUrl) && !imageUrl.startsWith("/")) {
       const stored = await storeImageFromUrl(`posts/${id}-${Date.now()}`, imageUrl).catch(() => null);
@@ -449,8 +467,8 @@ export async function updatePost(_prev: ActionResult | null, fd: FormData): Prom
         enabled: checked(fd, "enabled"),
         autoplay: checked(fd, "autoplay"),
       })
-      .where(eq(posts.id, id));
-    publish();
+      .where(and(eq(posts.tenantId, tenantId), eq(posts.id, id)));
+    publish(tenantId);
     return { ok: true };
   } catch (e) {
     return fieldErrors(e);
@@ -461,16 +479,17 @@ export async function updatePost(_prev: ActionResult | null, fd: FormData): Prom
 export async function refetchPost(id: string): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const db = await getDb();
-    const post = await db.query.posts.findFirst({ where: eq(posts.id, id) });
+    const post = await db.query.posts.findFirst({ where: and(eq(posts.tenantId, tenantId), eq(posts.id, id)) });
     if (!post) return { ok: false, error: "Post not found." };
     const og = await fetchOg(post.id, post.url).catch(() => ({ blocked: true }) as const);
     if (og.blocked) return { ok: false, error: "The site blocked the preview fetch. Edit the title and image by hand." };
     await db
       .update(posts)
       .set({ title: og.title ?? post.title, excerpt: og.excerpt ?? post.excerpt, imageUrl: og.imageUrl ?? post.imageUrl, publishedAt: og.publishedAt ?? post.publishedAt, source: "og" })
-      .where(eq(posts.id, id));
-    publish();
+      .where(and(eq(posts.tenantId, tenantId), eq(posts.id, id)));
+    publish(tenantId);
     return { ok: true };
   } catch (e) {
     return fieldErrors(e);
@@ -480,9 +499,10 @@ export async function refetchPost(id: string): Promise<ActionResult> {
 export async function deletePost(id: string): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     const db = await getDb();
-    await db.delete(posts).where(eq(posts.id, id));
-    publish();
+    await db.delete(posts).where(and(eq(posts.tenantId, tenantId), eq(posts.id, id)));
+    publish(tenantId);
     return { ok: true };
   } catch (e) {
     return fieldErrors(e);
@@ -493,13 +513,18 @@ export async function deletePost(id: string): Promise<ActionResult> {
 export async function syncInstagram(feedId: string): Promise<ActionResult> {
   try {
     await requireOwner();
+    const tenantId = await currentTenantId();
     if (!env.instagramToken) return { ok: false, error: "Set INSTAGRAM_ACCESS_TOKEN first (Creator/Business account)." };
     const media = await fetchInstagramMedia(env.instagramToken);
     const db = await getDb();
+    // Confirm the target feed belongs to this tenant before writing posts to it.
+    const feed = await db.query.feeds.findFirst({ where: and(eq(feeds.tenantId, tenantId), eq(feeds.id, feedId)), columns: { id: true } });
+    if (!feed) return { ok: false, error: "Feed not found." };
     let i = 0;
     for (const m of media) {
-      const existing = await db.query.posts.findFirst({ where: and(eq(posts.feedId, feedId), eq(posts.externalId, m.id)), columns: { id: true } });
+      const existing = await db.query.posts.findFirst({ where: and(eq(posts.tenantId, tenantId), eq(posts.feedId, feedId), eq(posts.externalId, m.id)), columns: { id: true } });
       const values = {
+        tenantId,
         feedId,
         url: m.permalink,
         platform: "instagram" as const,
@@ -510,10 +535,10 @@ export async function syncInstagram(feedId: string): Promise<ActionResult> {
         externalId: m.id,
         position: i++,
       };
-      if (existing) await db.update(posts).set(values).where(eq(posts.id, existing.id));
+      if (existing) await db.update(posts).set(values).where(and(eq(posts.tenantId, tenantId), eq(posts.id, existing.id)));
       else await db.insert(posts).values(values);
     }
-    publish();
+    publish(tenantId);
     return { ok: true };
   } catch (e) {
     return fieldErrors(e);

@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { requireOwnerPage } from "@linkme/core/lib/auth";
 import { getAdminData } from "@linkme/core/lib/queries";
+import { currentTenantId } from "@linkme/core/lib/tenant";
 import { LinksAdmin } from "@linkme/core/components/admin/LinksAdmin";
 
 export default async function AdminLinksPage() {
   await requireOwnerPage();
-  const data = await getAdminData();
+  const data = await getAdminData(await currentTenantId());
   return (
     <>
       <div className="flex items-center justify-between gap-3">

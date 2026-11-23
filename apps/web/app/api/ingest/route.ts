@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { timingSafeEqual } from "node:crypto";
 import { httpUrl } from "@linkme/core/lib/validation";
 import { ingestPost } from "@linkme/core/lib/ingest";
+import { currentTenantId } from "@linkme/core/lib/tenant";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
   }
   const parsed = httpUrl.safeParse(firstUrl(raw));
   if (!parsed.success || !/^https?:/i.test(parsed.data)) return NextResponse.json({ ok: false, error: "no valid http(s) URL in request" }, { status: 400 });
-  const result = await ingestPost({ url: parsed.data, title, feedId });
+  const result = await ingestPost({ tenantId: await currentTenantId(), url: parsed.data, title, feedId });
   if (result.ok) revalidatePath("/");
   return NextResponse.json(result, { status: result.ok ? 200 : 422 });
 }

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { resolveSlug, recordClick } from "@linkme/core/lib/queries";
+import { currentTenantId } from "@linkme/core/lib/tenant";
 import { withUtms } from "@linkme/core/lib/slug";
 
 export const dynamic = "force-dynamic";
@@ -8,13 +9,14 @@ const BOT_RE = /bot|crawler|spider|crawling|preview|facebookexternalhit|slurp|wh
 
 export async function GET(request: NextRequest, ctx: { params: Promise<{ slug: string }> }) {
   const { slug } = await ctx.params;
-  const link = await resolveSlug(slug);
+  const tenantId = await currentTenantId();
+  const link = await resolveSlug(tenantId, slug);
   if (!link) return new NextResponse("Not found", { status: 404 });
   const ua = request.headers.get("user-agent") || "";
   if (!BOT_RE.test(ua)) {
     // Inline insert: one indexed row, kept out of the redirect's failure path.
     try {
-      await recordClick(link.id);
+      await recordClick(tenantId, link.id);
     } catch (e) {
       console.error("click insert failed", slug, e);
     }

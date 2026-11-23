@@ -1,4 +1,9 @@
 @import "tailwindcss";
+/* The engine's components live in @linkme/core (a sibling workspace, reached via a
+   node_modules symlink that Tailwind's auto-detection skips). Scan the real source
+   so classes used only in core components — e.g. the desktop `md:` / editorial
+   layouts — are not purged. Path is relative to this file (apps/web/app). */
+@source "../../../packages/core";
 
 :root {
   --bg: #f4f3ef;

@@ -12,9 +12,13 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
-// Everything lives in its own schema so Supabase's PostgREST (which only
-// exposes `public` by default) never sees these tables.
-export const links = pgSchema("links");
+// Everything lives in its own Postgres schema so Supabase's PostgREST (which
+// only exposes `public` by default) never sees these tables. The schema NAME is
+// env-driven (`DB_SCHEMA`, default "links") so the same engine can run two
+// products in one database on isolated schemas — e.g. the self-host on "links"
+// and the SaaS platform on "yolink" — where evolving one never touches the other.
+export const DB_SCHEMA = process.env.DB_SCHEMA || "links";
+export const links = pgSchema(DB_SCHEMA);
 
 // The tenant dimension. Single-tenant self-host runs with exactly one row
 // (id = "default"); the SaaS platform adds one per signup. Every other table

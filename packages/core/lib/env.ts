@@ -18,7 +18,14 @@ export const env = {
   r2AccessKeyId: process.env.R2_ACCESS_KEY_ID || "",
   r2SecretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
   r2Bucket: process.env.R2_BUCKET || "",
-  r2PublicBaseUrl: (process.env.R2_PUBLIC_BASE_URL || "").replace(/\/$/, ""),
+  // Normalize: trim a trailing slash AND ensure an absolute scheme. A bare host
+  // like "cdn.yolin.me" would otherwise be stored as a schemeless image src and
+  // resolve RELATIVE to the page (→ 404). Default to https:// when absent.
+  r2PublicBaseUrl: (() => {
+    const raw = (process.env.R2_PUBLIC_BASE_URL || "").trim().replace(/\/$/, "");
+    if (!raw) return "";
+    return /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  })(),
 };
 
 export const isLocalDb = !env.databaseUrl;

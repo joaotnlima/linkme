@@ -18,9 +18,8 @@ export const hasSupabase = Boolean(env.supabaseUrl && env.supabasePublishableKey
 export const authBypass =
   env.devBypass || (!hasSupabase && process.env.NODE_ENV !== "production");
 
-// Fail closed in production (at runtime, not during `next build`): an open admin or a missing owner id must never ship.
-if (process.env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build") {
-  if (env.devBypass) throw new Error("ADMIN_DEV_BYPASS must not be set in production");
-  if (hasSupabase && !env.ownerGithubId) throw new Error("OWNER_GITHUB_ID is required in production");
-  if (!hasSupabase) throw new Error("Supabase env vars are required in production (local mode is dev-only)");
-}
+// NOTE: core reads env but asserts NO auth model. The self-host's fail-closed
+// production checks (OWNER_GITHUB_ID required, Supabase required, no dev-bypass)
+// are self-host policy and live in apps/web/instrumentation.ts — so a consumer
+// with a different auth model (e.g. the multi-tenant platform) is not forced
+// into the single-owner/Supabase assumptions.

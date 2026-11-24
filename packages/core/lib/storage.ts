@@ -40,13 +40,16 @@ async function putToR2(key: string, bytes: Uint8Array, contentType: string): Pro
     region: "auto",
   });
   const endpoint = `https://${env.r2AccountId}.r2.cloudflarestorage.com/${env.r2Bucket}/${key}`;
-  // Copy into a fresh ArrayBuffer so aws4fetch can hash a plain body (avoids
+  // Copy into a fresh Uint8Array so aws4fetch can hash a plain body (avoids
   // Buffer/pooled-ArrayBuffer edge cases) and R2 gets exact bytes.
   const body = bytes.slice();
   const res = await client.fetch(endpoint, {
     method: "PUT",
     body,
-    headers: { "content-type": contentType },
+    // R2's S3 API rejects chunked uploads with 411 MissingContentLength. undici
+    // streams a typed-array body without a length once aws4fetch re-wraps it, so
+    // set Content-Length explicitly to force a sized, non-chunked PUT.
+    headers: { "content-type": contentType, "content-length": String(body.byteLength) },
   });
   if (!res.ok) {
     throw new Error(`R2 upload failed: ${res.status} ${await res.text().catch(() => "")}`);

@@ -10,10 +10,22 @@ export const env = {
   instagramToken: process.env.INSTAGRAM_ACCESS_TOKEN || "",
   ingestToken: process.env.INGEST_TOKEN || "",
   devBypass: process.env.ADMIN_DEV_BYPASS === "true",
+  // Cloudflare R2 (S3-compatible) public object storage. When all are set, R2 is
+  // the preferred backend for uploaded files (avatars, banners, post images, link
+  // icons) over Supabase Storage. `r2PublicBaseUrl` is the public URL the bucket
+  // is served from (an r2.dev URL or a custom domain like https://cdn.yolin.me).
+  r2AccountId: process.env.R2_ACCOUNT_ID || "",
+  r2AccessKeyId: process.env.R2_ACCESS_KEY_ID || "",
+  r2SecretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
+  r2Bucket: process.env.R2_BUCKET || "",
+  r2PublicBaseUrl: (process.env.R2_PUBLIC_BASE_URL || "").replace(/\/$/, ""),
 };
 
 export const isLocalDb = !env.databaseUrl;
 export const hasSupabase = Boolean(env.supabaseUrl && env.supabasePublishableKey);
+export const hasR2 = Boolean(
+  env.r2AccountId && env.r2AccessKeyId && env.r2SecretAccessKey && env.r2Bucket && env.r2PublicBaseUrl,
+);
 // With no Supabase configured and not in production, /admin opens without login.
 export const authBypass =
   env.devBypass || (!hasSupabase && process.env.NODE_ENV !== "production");

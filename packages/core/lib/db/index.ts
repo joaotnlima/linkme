@@ -25,10 +25,16 @@ async function create(): Promise<Db> {
   // reused dead socket otherwise hangs the request. Fail fast on connect too.
   const client = postgres(env.databaseUrl, {
     prepare: false,
-    // Serverless + Supabase transaction pooler (pool_size 15): keep one
-    // connection per instance so many Fluid instances don't exhaust the pool.
-    // Transaction mode multiplexes, so queries still run fine.
-    max: 1,
+    // Serverless + Supabase transaction pooler (pool_size 15). `max` is the number
+    // of client connections this instance holds. It MUST be >1: a single render
+    // issues several queries concurrently (e.g. getAdminData's Promise.all of 5,
+    // plus the layout + tenant-resolver queries). With max:1 those concurrent
+    // queries get pipelined onto ONE connection, which Supavisor's transaction
+    // pooler cannot service — they never reach Postgres (so statement_timeout
+    // never fires) and the request hangs until the function times out. A small
+    // pool lets concurrent queries each take their own pooled connection; Fluid
+    // reuses few instances and idle_timeout reaps them, so the pooler is safe.
+    max: 10,
     idle_timeout: 20, // close a connection after 20s idle
     max_lifetime: 60 * 5, // recycle connections every 5 min
     connect_timeout: 10, // error instead of hanging if connect stalls

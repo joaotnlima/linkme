@@ -24,23 +24,12 @@ export const links = pgSchema(DB_SCHEMA);
 // (id = "default"); the SaaS platform adds one per signup. Every other table
 // carries `tenantId` → tenant.id (on delete cascade) so a tenant's data is
 // isolated and its removal is a single cascade.
+// Operate-only: the engine needs just the tenant identity. Everything SaaS —
+// plans, Stripe billing, custom domains — lives in the PLATFORM repo's own tables,
+// never here (ADR 0009: core asserts no auth/billing model).
 export const tenant = links.table("tenant", {
   id: text("id").primaryKey(),
   slug: text("slug").notNull().unique(),
-  plan: text("plan").notNull().default("free"), // free | pro | business
-  status: text("status").notNull().default("active"), // active | past_due | canceled
-  // ---- billing (platform-only; core never reads these — see ADR 0009/0012) ----
-  // Where the plan state comes from, so comped tenants aren't downgraded by Stripe
-  // webhooks: none (free) | stripe (paid sub) | comp (admin-granted, no Stripe).
-  billingSource: text("billing_source").notNull().default("none"),
-  stripeCustomerId: text("stripe_customer_id"),
-  stripeSubscriptionId: text("stripe_subscription_id"),
-  priceId: text("price_id"),
-  currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
-  cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
-  // ---- custom domain (Pro, "model B": BYO domain served via host→tenant) ----
-  customDomain: text("custom_domain").unique(),
-  customDomainVerified: boolean("custom_domain_verified").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

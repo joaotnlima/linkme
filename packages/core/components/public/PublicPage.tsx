@@ -197,7 +197,7 @@ export function PublicPage({ settings, feeds, links, posts, qrSvg, siteUrl, forc
         <div className="px-4 md:px-6 flex flex-col gap-5 md:gap-6">
           <Socials links={links} />
           <PublicBody feeds={feeds} links={links} posts={posts} />
-          <MadeBy footer={settings.footer || hostOf(siteUrl)} />
+          <MadeBy footer={settings.footer || null} />
         </div>
       </div>
     </main>

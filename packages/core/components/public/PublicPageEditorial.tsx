@@ -7,7 +7,6 @@ import { LinkIcon } from "./Icon";
 import { PublicBody, initials, type PageData } from "./PublicPage";
 import { ShareCard } from "./ShareCard";
 import { MadeBy } from "./MadeBy";
-import { hostOf } from "@/lib/slug";
 
 
 /**
@@ -76,7 +75,7 @@ export function PublicPageEditorial({ settings, feeds, links, posts, qrSvg, site
           <PublicBody feeds={feeds} links={links} posts={posts} excludeLinkId={lead?.id ?? null} />
         </div>
 
-        <MadeBy footer={settings.footer || hostOf(siteUrl)} />
+        <MadeBy footer={settings.footer || null} />
       </div>
     </main>
   );

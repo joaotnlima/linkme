@@ -3,7 +3,7 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
-import { currentTenantId, tenantTag } from "@/lib/tenant";
+import { currentTenantId, tenantTag, onPublish } from "@/lib/tenant";
 import { requireOwner } from "@/lib/auth";
 import { feedInput, httpUrl, linkInput, postInput, settingsInput } from "@/lib/validation";
 import { slugify, platformOf } from "@/lib/slug";
@@ -28,6 +28,7 @@ export type ActionResult = { ok: true } | { ok: false; error: string; fields?: R
 function publish(tenantId: string) {
   updateTag(tenantTag(tenantId));
   revalidatePath("/admin", "layout");
+  onPublish(tenantId); // bust the platform's external (Redis) page cache, if wired
 }
 
 function fieldErrors(e: unknown): ActionResult {

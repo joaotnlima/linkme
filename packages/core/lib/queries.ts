@@ -39,7 +39,7 @@ async function readPublicPage(tenantId: string): Promise<PublicPageData> {
 // strings. Re-hydrate the timestamps the render touches (idempotent: `new Date`
 // of an existing Date is still that instant). Keeps the cached payload a faithful
 // `PublicPageData` for consumers.
-function hydrate(d: PublicPageData): PublicPageData {
+export function hydrate(d: PublicPageData): PublicPageData {
   return {
     settings: { ...d.settings, updatedAt: new Date(d.settings.updatedAt) },
     feeds: d.feeds,

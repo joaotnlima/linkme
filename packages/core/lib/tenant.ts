@@ -29,3 +29,22 @@ export function configureTenantResolver(fn: TenantResolver) {
 export async function currentTenantId(): Promise<string> {
   return slot.__linkmeTenantResolver ? slot.__linkmeTenantResolver() : DEFAULT_TENANT_ID;
 }
+
+// Publish seam: an app can register a side-effect to run whenever a tenant's page
+// is republished (owner edit). The platform uses it to bust its external (Redis)
+// page cache; self-host leaves it unset → no-op. Fire-and-forget: a failure here
+// must never break the edit.
+type OnPublish = (tenantId: string) => void | Promise<void>;
+const pub = globalThis as unknown as { __linkmeOnPublish?: OnPublish };
+
+export function configureOnPublish(fn: OnPublish) {
+  pub.__linkmeOnPublish = fn;
+}
+
+export function onPublish(tenantId: string): void {
+  try {
+    void pub.__linkmeOnPublish?.(tenantId);
+  } catch {
+    // best-effort
+  }
+}

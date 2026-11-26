@@ -4,7 +4,8 @@ import { Background } from "./Background";
 import { Customize, customMainProps } from "./Customize";
 import { ThemeToggle } from "./ThemeToggle";
 import { LinkIcon } from "./Icon";
-import { PublicBody, initials, type PageData } from "./PublicPage";
+import { Fragment } from "react";
+import { PublicBody, initials, type PageData, type InlineSlot } from "./PublicPage";
 import { ShareCard } from "./ShareCard";
 import { MadeBy } from "./MadeBy";
 
@@ -16,7 +17,16 @@ import { MadeBy } from "./MadeBy";
  * Motion: a 300 ms staggered reveal on load; background paths at half strength;
  * nothing moves under prefers-reduced-motion.
  */
-export function PublicPageEditorial({ settings, feeds, links, posts, qrSvg, siteUrl }: PageData) {
+export function PublicPageEditorial({
+  settings,
+  feeds,
+  links,
+  posts,
+  qrSvg,
+  siteUrl,
+  slots,
+  floatSlots,
+}: PageData & { slots?: InlineSlot[]; floatSlots?: React.ReactNode[] }) {
   const lead = settings.leadLinkId ? links.find((l) => l.id === settings.leadLinkId) ?? null : null;
   const socials = links.filter((l) => l.display === "icon");
   const headline = settings.tagline || settings.displayName;
@@ -72,11 +82,14 @@ export function PublicPageEditorial({ settings, feeds, links, posts, qrSvg, site
         </section>
 
         <div className="reveal reveal-5 mx-auto w-full max-w-[640px] mt-10 md:mt-16 flex flex-col gap-5">
-          <PublicBody feeds={feeds} links={links} posts={posts} excludeLinkId={lead?.id ?? null} />
+          <PublicBody feeds={feeds} links={links} posts={posts} excludeLinkId={lead?.id ?? null} slots={slots} />
         </div>
 
         <MadeBy footer={settings.footer || null} />
       </div>
+      {floatSlots?.length ? (
+        <div className="fixed bottom-5 right-5 z-30 flex flex-col items-end gap-3">{floatSlots.map((n, i) => <Fragment key={i}>{n}</Fragment>)}</div>
+      ) : null}
     </main>
   );
 }

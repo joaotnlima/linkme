@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import { Fragment } from "react";
 import type { Feed, Link, Post, Settings } from "@/lib/db/schema";
 import { Background } from "./Background";
 import { Customize, customMainProps } from "./Customize";
@@ -130,8 +131,25 @@ function FeedBlock({ feed, items }: { feed: Feed; items: Post[] }) {
   );
 }
 
-/** Links grouped by section label (in position order), then feeds. Shared by both layouts. */
-export function PublicBody({ feeds, links, posts, excludeLinkId }: Pick<PageData, "feeds" | "links" | "posts"> & { excludeLinkId?: string | null }) {
+/**
+ * Links grouped by section label (in position order), then feeds. Shared by both
+ * layouts. An optional `slot` (a ReactNode supplied by the host app) can be
+ * interleaved among the link cards at `slotPosition` — the engine stays generic:
+ * it only renders "a node at a point in the ordered list", with no idea what it is.
+ */
+/** An optional host-supplied node to interleave among the cards at a position. */
+export type InlineSlot = { node: React.ReactNode; position: number };
+
+export function PublicBody({
+  feeds,
+  links,
+  posts,
+  excludeLinkId,
+  slots,
+}: Pick<PageData, "feeds" | "links" | "posts"> & {
+  excludeLinkId?: string | null;
+  slots?: InlineSlot[];
+}) {
   const cards = links.filter((l) => l.display !== "icon" && l.id !== excludeLinkId);
   const sections: { name: string | null; items: Link[] }[] = [];
   for (const l of cards) {
@@ -139,20 +157,39 @@ export function PublicBody({ feeds, links, posts, excludeLinkId }: Pick<PageData
     if (last && last.name === (l.section || null)) last.items.push(l);
     else sections.push({ name: l.section || null, items: [l] });
   }
+  // Interleave each slot before the first card whose position ≥ the slot's; any
+  // slots past the last card fall to the end. A single ordered pass over the cards.
+  const sorted = [...(slots ?? [])].sort((a, b) => a.position - b.position);
+  let si = 0;
+  const before = (cardPos: number) => {
+    const out: React.ReactNode[] = [];
+    while (si < sorted.length && sorted[si].position <= cardPos) out.push(<Fragment key={`slot-${si}`}>{sorted[si++].node}</Fragment>);
+    return out;
+  };
   return (
     <>
       {sections.map((s, i) => (
         <div key={i} className="flex flex-col gap-2.5">
           {s.name ? <SectionLabel>{s.name}</SectionLabel> : null}
-          {s.items.map((l) => <Card key={l.id} link={l} featured={l.display === "featured"} />)}
+          {s.items.map((l) => (
+            <Fragment key={l.id}>
+              {before(l.position)}
+              <Card link={l} featured={l.display === "featured"} />
+            </Fragment>
+          ))}
         </div>
       ))}
+      {si < sorted.length ? (
+        <div className="flex flex-col gap-2.5">
+          {sorted.slice(si).map((x, k) => <Fragment key={`slot-end-${k}`}>{x.node}</Fragment>)}
+        </div>
+      ) : null}
       {feeds.map((f) => {
         const items = posts.filter((p) => p.feedId === f.id && p.enabled);
         if (!items.length) return null;
         return <FeedBlock key={f.id} feed={f} items={items} />;
       })}
-      {!cards.length && !feeds.length ? <p className="text-center text-muted text-sm">Nothing here yet. Add links in /admin.</p> : null}
+      {!cards.length && !feeds.length && !sorted.length ? <p className="text-center text-muted text-sm">Nothing here yet. Add links in /admin.</p> : null}
     </>
   );
 }
@@ -171,7 +208,17 @@ export function Socials({ links }: { links: Link[] }) {
   );
 }
 
-export function PublicPage({ settings, feeds, links, posts, qrSvg, siteUrl, forceLayout }: PageData & { forceLayout?: string }) {
+export function PublicPage({
+  settings,
+  feeds,
+  links,
+  posts,
+  qrSvg,
+  siteUrl,
+  forceLayout,
+  slots,
+  floatSlots,
+}: PageData & { forceLayout?: string; slots?: InlineSlot[]; floatSlots?: React.ReactNode[] }) {
   const activeLayout = forceLayout ?? settings.layout;
   const fullBleed = ["hero", "banner", "callout"].includes(activeLayout);
   const share = (
@@ -196,10 +243,13 @@ export function PublicPage({ settings, feeds, links, posts, qrSvg, siteUrl, forc
         )}
         <div className="px-4 md:px-6 flex flex-col gap-5 md:gap-6">
           <Socials links={links} />
-          <PublicBody feeds={feeds} links={links} posts={posts} />
+          <PublicBody feeds={feeds} links={links} posts={posts} slots={slots} />
           <MadeBy footer={settings.footer || null} />
         </div>
       </div>
+      {floatSlots?.length ? (
+        <div className="fixed bottom-5 right-5 z-30 flex flex-col items-end gap-3">{floatSlots.map((n, i) => <Fragment key={i}>{n}</Fragment>)}</div>
+      ) : null}
     </main>
   );
 }

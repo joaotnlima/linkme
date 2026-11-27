@@ -80,6 +80,13 @@ export async function createLink(_prev: ActionResult | null, fd: FormData): Prom
       enabled: checked(fd, "enabled"),
       slug: str(fd, "slug"),
       iconEmoji: str(fd, "iconEmoji"),
+      imageUrl: str(fd, "imageUrl"),
+      imageMode: str(fd, "imageMode") || "icon",
+      style: {
+        bg: str(fd, "styleBg") || undefined,
+        textColor: str(fd, "styleText") || undefined,
+        radius: fd.get("styleRadius") ? Number(fd.get("styleRadius")) : undefined,
+      },
     });
     if (/^https?:/i.test(input.url)) await assertPublicUrl(input.url);
     const db = await getDb();
@@ -97,6 +104,9 @@ export async function createLink(_prev: ActionResult | null, fd: FormData): Prom
         enabled: input.enabled,
         slug,
         iconEmoji: input.iconEmoji || null,
+        imageUrl: input.imageUrl || null,
+        imageMode: input.imageMode,
+        style: input.style ?? {},
         position: Number(max) + 1,
       })
       .returning({ id: linksTable.id });
@@ -127,6 +137,13 @@ export async function updateLink(_prev: ActionResult | null, fd: FormData): Prom
       enabled: checked(fd, "enabled"),
       slug: str(fd, "slug"),
       iconEmoji: str(fd, "iconEmoji"),
+      imageUrl: str(fd, "imageUrl"),
+      imageMode: str(fd, "imageMode") || "icon",
+      style: {
+        bg: str(fd, "styleBg") || undefined,
+        textColor: str(fd, "styleText") || undefined,
+        radius: fd.get("styleRadius") ? Number(fd.get("styleRadius")) : undefined,
+      },
     });
     if (/^https?:/i.test(input.url)) await assertPublicUrl(input.url);
     const db = await getDb();
@@ -144,6 +161,9 @@ export async function updateLink(_prev: ActionResult | null, fd: FormData): Prom
         enabled: input.enabled,
         slug,
         iconEmoji: input.iconEmoji || null,
+        imageUrl: input.imageUrl || null,
+        imageMode: input.imageMode,
+        style: input.style ?? {},
         updatedAt: new Date(),
       })
       .where(and(eq(linksTable.tenantId, tenantId), eq(linksTable.id, id)));

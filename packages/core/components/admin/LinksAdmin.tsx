@@ -92,6 +92,29 @@ function Editor({ link, onClose }: { link: Link | null; onClose: () => void }) {
                     <input id="iconEmoji" name="iconEmoji" type="text" maxLength={8} defaultValue={link?.iconEmoji ?? ""} placeholder="🚀" className={inputCls} />
                   </Field>
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Image URL (optional)" name="imageUrl" error={f.imageUrl}>
+                    <input id="imageUrl" name="imageUrl" type="text" inputMode="url" defaultValue={link?.imageUrl ?? ""} placeholder="https://… .png" className={inputCls} />
+                  </Field>
+                  <Field label="Image shows as" name="imageMode">
+                    <select id="imageMode" name="imageMode" defaultValue={link?.imageMode ?? "icon"} className={inputCls}>
+                      <option value="icon">Icon (default)</option>
+                      <option value="thumbnail">Thumbnail (beside title)</option>
+                      <option value="background">Background</option>
+                    </select>
+                  </Field>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <Field label="Button colour" name="styleBg">
+                    <input id="styleBg" name="styleBg" type="text" maxLength={32} defaultValue={(link?.style as { bg?: string } | null)?.bg ?? ""} placeholder="#RRGGBB" className={inputCls} />
+                  </Field>
+                  <Field label="Text colour" name="styleText">
+                    <input id="styleText" name="styleText" type="text" maxLength={32} defaultValue={(link?.style as { textColor?: string } | null)?.textColor ?? ""} placeholder="#RRGGBB" className={inputCls} />
+                  </Field>
+                  <Field label="Corner radius" name="styleRadius">
+                    <input id="styleRadius" name="styleRadius" type="number" min={0} max={40} defaultValue={(link?.style as { radius?: number } | null)?.radius ?? undefined} placeholder="16" className={inputCls} />
+                  </Field>
+                </div>
                 <Field label="Short link" name="slug" error={f.slug}>
                   <div className="flex items-center h-12 rounded-xl border border-line bg-card overflow-hidden">
                     <span className="pl-3.5 text-[15px] text-muted whitespace-nowrap">/go/</span>

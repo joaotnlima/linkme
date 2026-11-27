@@ -18,7 +18,26 @@ async function createFactory(): Promise<Make> {
     await (await import("node:fs/promises")).mkdir(".data/pglite", { recursive: true });
     const client = new PGlite(".data/pglite");
     const make = (<S extends Record<string, unknown>>(s: S) => drizzle(client, { schema: s })) as Make;
-    await migrate(make(schema), { migrationsFolder: "./drizzle" });
+    // Find the migrations folder by walking up from the CWD — robust to where
+    // `next dev` is launched (app dir, repo root, …). Prefers the engine's own
+    // `packages/core/drizzle`; falls back to a local `./drizzle` (the platform's,
+    // when this engine is consumed as a submodule). Fixes "Can't find
+    // meta/_journal.json" in standalone local dev.
+    const { existsSync } = await import("node:fs");
+    const nodePath = await import("node:path");
+    const hasJournal = (d: string) => existsSync(nodePath.join(d, "meta", "_journal.json"));
+    let migrationsFolder = "./drizzle";
+    let dir = process.cwd();
+    for (let i = 0; i < 6; i++) {
+      const coreDir = nodePath.join(dir, "packages", "core", "drizzle");
+      const hereDir = nodePath.join(dir, "drizzle");
+      if (hasJournal(coreDir)) { migrationsFolder = coreDir; break; }
+      if (hasJournal(hereDir)) { migrationsFolder = hereDir; break; }
+      const up = nodePath.dirname(dir);
+      if (up === dir) break;
+      dir = up;
+    }
+    await migrate(make(schema), { migrationsFolder });
     return make;
   }
   const postgres = (await import("postgres")).default;

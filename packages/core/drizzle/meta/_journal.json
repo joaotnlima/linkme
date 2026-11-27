@@ -92,6 +92,13 @@
       "when": 1795437424001,
       "tag": "0012_slice2_tenant",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1795783882526,
+      "tag": "0013_link_style_image",
+      "breakpoints": true
     }
   ]
 }

@@ -6,6 +6,7 @@ import {
   integer,
   bigserial,
   timestamp,
+  jsonb,
   index,
   uniqueIndex,
   primaryKey,
@@ -116,6 +117,10 @@ export const linksTable = links.table(
     iconEmoji: text("icon_emoji"),
     section: text("section"),
     display: text("display").notNull().default("card"), // card | featured | icon
+    // Per-link visual overrides (empty {} = inherit the page's global look).
+    style: jsonb("style").notNull().default({}), // { bg?, textColor?, radius?, border? }
+    imageUrl: text("image_url"), // optional image for the button (thumbnail/background)
+    imageMode: text("image_mode").notNull().default("icon"), // icon | thumbnail | background
     enabled: boolean("enabled").notNull().default(true),
     position: integer("position").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

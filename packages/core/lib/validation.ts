@@ -27,6 +27,19 @@ export const linkInput = z.object({
   enabled: z.boolean().default(true),
   slug: slugSchema.optional().or(z.literal("")),
   iconEmoji: z.string().trim().max(8).optional().or(z.literal("")),
+  // Per-link image + visual overrides. `style` keys are CSS values; omit a key to
+  // inherit the page's global look. `imageMode` decides how `imageUrl` is used.
+  imageUrl: optUrl,
+  imageMode: z.enum(["icon", "thumbnail", "background"]).default("icon"),
+  style: z
+    .object({
+      bg: z.string().trim().max(32).optional(),
+      textColor: z.string().trim().max(32).optional(),
+      radius: z.number().int().min(0).max(40).optional(),
+      border: z.string().trim().max(32).optional(),
+    })
+    .partial()
+    .optional(),
 });
 export type LinkInput = z.infer<typeof linkInput>;
 

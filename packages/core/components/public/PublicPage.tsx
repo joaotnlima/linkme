@@ -25,13 +25,31 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export function Card({ link, featured }: { link: Link; featured: boolean }) {
   const href = `/go/${link.slug}`;
+  // Per-link visual overrides (empty {} = inherit the page's global look).
+  const st = (link.style ?? {}) as { bg?: string; textColor?: string; radius?: number; border?: string };
+  const bg = link.imageMode === "background" && link.imageUrl ? link.imageUrl : null;
+  const styleVars: React.CSSProperties = {
+    ...(st.bg ? { background: st.bg } : {}),
+    ...(st.textColor ? { color: st.textColor } : {}),
+    ...(st.radius != null ? { borderRadius: st.radius } : {}),
+    ...(st.border ? { borderColor: st.border } : {}),
+    ...(bg ? { backgroundImage: `url(${bg})`, backgroundSize: "cover", backgroundPosition: "center", color: st.textColor || "#fff" } : {}),
+  };
   return (
-    <div className={`card-hover cz-radius cz-surface flex items-stretch rounded-2xl border ${featured ? "cz-featured bg-accent-soft border-accent min-h-[72px]" : "bg-card border-line min-h-14"}`}>
-      <a href={href} rel="noopener" className={`flex-1 min-w-0 flex items-center gap-3 ${featured ? "py-3 pl-3.5 pr-2" : "py-2 pl-3.5 pr-2"}`}>
-        <LinkIcon title={link.title} iconUrl={link.iconUrl} iconEmoji={link.iconEmoji} url={link.url} />
+    <div
+      style={styleVars}
+      className={`card-hover cz-radius cz-surface relative flex items-stretch overflow-hidden rounded-2xl border ${featured ? "cz-featured bg-accent-soft border-accent min-h-[72px]" : "bg-card border-line min-h-14"}`}
+    >
+      {bg ? <div aria-hidden className="absolute inset-0 bg-black/35" /> : null}
+      <a href={href} rel="noopener" className={`relative flex-1 min-w-0 flex items-center gap-3 ${featured ? "py-3 pl-3.5 pr-2" : "py-2 pl-3.5 pr-2"}`}>
+        {link.imageMode === "thumbnail" && link.imageUrl ? (
+          <img src={link.imageUrl} alt="" className="w-11 h-11 rounded-xl object-cover shrink-0" loading="lazy" referrerPolicy="no-referrer" />
+        ) : (
+          <LinkIcon title={link.title} iconUrl={link.iconUrl} iconEmoji={link.iconEmoji} url={link.url} />
+        )}
         <span className="flex flex-col min-w-0">
           <span className={`font-semibold leading-snug ${featured ? "text-[17px]" : "text-base"}`}>{link.title}</span>
-          {link.subtitle ? <span className="text-[13px] leading-[18px] text-muted truncate">{link.subtitle}</span> : null}
+          {link.subtitle ? <span className={`text-[13px] leading-[18px] truncate ${bg ? "text-white/80" : "text-muted"}`}>{link.subtitle}</span> : null}
         </span>
       </a>
       <CopyButton url={link.url} campaign={link.slug} label={link.title} />
